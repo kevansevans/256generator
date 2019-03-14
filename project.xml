@@ -19,7 +19,6 @@
 	<!-- assets -->
 	<icon path="assets/openfl.svg" />
 	<assets path="assets/img" rename="img" />
-	<assets path="assets/temp" rename="temp" />
 	<assets path="assets/fonts" rename="fonts" embed="true" />
 	<library path="assets/flash/assets.swf" id="assets" />
 	
