@@ -1,5 +1,6 @@
 package;
 
+import components.HSlider;
 import lime.system.System;
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
@@ -79,12 +80,15 @@ class Main extends Sprite
 	
 	var texname:Label;
 	
+	var drawover_colors:Map<String, Int>;
 	var drawover_add:IconButton;
 	var drawover_label:Label;
 	var file_ref:FileReference;
 	
 	var export:IconButton;
 	var export_label:Label;
+	
+	var alpha_slider:HSlider;
 	function make_ux() 
 	{
 		
@@ -196,11 +200,38 @@ class Main extends Sprite
 		addChild(export_label);
 		export_label.x = 50;
 		export_label.y = 250;
+		
+		alpha_slider = new HSlider(0, 200, 100, RoundMode.FLOOR);
+		addChild(alpha_slider);
+		alpha_slider.onChange = function(e:MouseEvent) {
+			for (a in 0...draw_over.width) {
+				for (b in 0...draw_over.height) {
+					var place = "x" + a + "y" + b;
+					if (((drawover_colors[place] >> 24) & 0xFF) == 0xFF) continue;
+					else {
+						var color = drawover_colors[place];
+						var alpha:Float = ((color >> 24) & 0xFF) * (alpha_slider.value / 100);
+						var color_new = ((Std.int(alpha) & 0xFF) << 24) | (color & 0xFFFFFF);
+						draw_over.setPixel32(a, b, color_new);
+					}
+				}
+			}
+		}
+		alpha_slider.x = 10;
+		alpha_slider.y = 290;
 	}
 	function load_drawover(e:Event):Void 
 	{
 		draw_over = BitmapData.fromBytes(file_ref.data);
 		drawover_label.set(file_ref.name);
+		
+		drawover_colors = new Map();
+		for (a in 0...draw_over.width) {
+			for (b in 0...draw_over.height) {
+				var place = "x" + a + "y" + b;
+				drawover_colors[place] = draw_over.getPixel32(a, b);
+			}
+		}
 	}
 	function set_preview(e:MouseEvent):Void 
 	{
