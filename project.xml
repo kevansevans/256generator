@@ -9,7 +9,7 @@
 	<app main="Main" file="PalleteGenerator" path="bin" />
 	
 	<window background="#000000" fps="60" />
-	<window width="800" height="480" unless="mobile" />
+	<window width="1280" height="720" unless="mobile" />
 	<window orientation="landscape" vsync="false" antialiasing="0" if="cpp" />
 	
 	<!-- classpath, haxe libs -->
@@ -19,7 +19,7 @@
 	<!-- assets -->
 	<icon path="assets/openfl.svg" />
 	<assets path="assets/img" rename="img" />
-	<assets path="assets/fonts" rename="fonts" embed="true" />
+	<assets path="assets/fonts" rename="fonts"/>
 	<library path="assets/flash/assets.swf" id="assets" />
 	
 	<!-- optimize output
