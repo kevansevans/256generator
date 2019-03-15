@@ -3,10 +3,10 @@
 	<!-- NMML reference: https://gist.github.com/1763850 -->
 	
 	<!-- metadata, make sure 'package' is at least 3 segments (ie. com.mycompany.myproject) -->
-	<meta title="PalleteGenerator" package="PalleteGenerator" version="1.0.0" company="Kaelan" />
+	<meta title="256 Generator" package="com.kevans.256" version="1.0.0" company="Kaelan" />
 	
 	<!-- output -->
-	<app main="Main" file="PalleteGenerator" path="bin" />
+	<app main="Main" file="256 Generator" path="bin" />
 	
 	<window background="#000000" fps="60" />
 	<window width="1280" height="720" unless="mobile" />
