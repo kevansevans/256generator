@@ -58,13 +58,21 @@ class Main extends Sprite
 		addChild(final_sprite);
 		final_sprite.addChild(final_bitmap);
 		final_sprite.scaleX = final_sprite.scaleY = 5;
-		final_sprite.x = 640;
-		final_sprite.y = 160;
+		final_sprite.x = 340;
+		final_sprite.y = 30;
 		final_sprite.addEventListener(MouseEvent.CLICK, function(e:MouseEvent) {
 			if (!hasEventListener(Event.ENTER_FRAME)) {
 				addEventListener(Event.ENTER_FRAME, draw_preview);
 			}
 		});
+		
+		scale_slider = new HSlider(0.5, 15, 5);
+		addChild(scale_slider);
+		scale_slider.onChange = function() {
+			final_sprite.scaleX = final_sprite.scaleY = scale_slider.value;
+		}
+		scale_slider.x = 340;
+		scale_slider.y = 15;
 		
 		this.addEventListener(Event.ENTER_FRAME, draw_preview);
 		
