@@ -14,9 +14,11 @@ import openfl.geom.Rectangle;
 import openfl.net.FileReference;
 import openfl.net.FileFilter;
 import openfl.display.PNGEncoderOptions;
+#if sys
 import sys.FileSystem;
 import sys.io.FileOutput;
 import sys.io.File;
+#end
 
 import components.CheckBox;
 import components.IconButton;
@@ -43,6 +45,7 @@ class Main extends Sprite
 	var work_bitmapdata:BitmapData = new BitmapData(16, 16);
 	var final_bitmap:Bitmap = new Bitmap();
 	var bmp_palette:Bitmap;
+	var scale_slider:HSlider;
 	var final_sprite:Sprite = new Sprite();
 	var bmp_sprite:Sprite = new Sprite();
 	
@@ -96,7 +99,11 @@ class Main extends Sprite
 	var export:IconButton;
 	var export_label:Label;
 	
+	var alpha_selective:CheckBox;
 	var alpha_slider:HSlider;
+	
+	var row_sort:CheckBox;
+	var col_sort:CheckBox;
 	function make_ux() 
 	{
 		
@@ -196,21 +203,37 @@ class Main extends Sprite
 		drawover_label.x = 50;
 		drawover_label.y = 210;
 		
+		row_sort = new CheckBox("Sort by row", false);
+		row_sort.onChange = function(e:MouseEvent) {
+			if (col_sort.value) col_sort.set(false);
+		}
+		addChild(row_sort);
+		row_sort.x = 10;
+		row_sort.y = 250;
+		
+		col_sort = new CheckBox("Sort by column", false);
+		addChild(col_sort);
+		col_sort.onChange = function(e:MouseEvent) {
+			if (row_sort.value) row_sort.set(false);
+		}
+		col_sort.x = 10;
+		col_sort.y = 270;
+		
 		export = new IconButton("yes");
 		export.func_up = function(e:MouseEvent) {
 			export_palette();
 		}
 		addChild(export);
 		export.x = 10;
-		export.y = 250;
+		export.y = 310;
 		
 		export_label = new Label(LabelType.DYNAMIC, "Generate!");
 		addChild(export_label);
 		export_label.x = 50;
-		export_label.y = 250;
+		export_label.y = 310;
 		
 		alpha_slider = new HSlider(0, 200, 100, RoundMode.FLOOR);
-		addChild(alpha_slider);
+		//addChild(alpha_slider);
 		alpha_slider.onChange = function(e:MouseEvent) {
 			for (a in 0...draw_over.width) {
 				for (b in 0...draw_over.height) {
@@ -240,11 +263,23 @@ class Main extends Sprite
 				drawover_colors[place] = draw_over.getPixel32(a, b);
 			}
 		}
+		
+		set_preview();
 	}
-	function set_preview(e:MouseEvent):Void 
+	var palx:Int = 0;
+	var paly:Int = 0;
+	function set_preview(?e:MouseEvent):Void 
 	{
-		var pos:Point = new Point(bmp_palette.mouseX, bmp_palette.mouseY);
-		var color = palette.getPixel(Std.int(pos.x), Std.int(pos.y));
+		var pos:Point;
+		var color:Int;
+		if (e == null) {
+			pos = new Point(palx, paly);
+		} else {
+			pos = new Point(bmp_palette.mouseX, bmp_palette.mouseY);
+			palx = Std.int(pos.x);
+			paly = Std.int(pos.y);
+		}
+		color = palette.getPixel(Std.int(pos.x), Std.int(pos.y));
 		if (draw_over != null) {
 			work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
 			work_bitmapdata.draw(draw_over);
@@ -293,12 +328,20 @@ class Main extends Sprite
 		
 		#if sys
 		FileSystem.createDirectory("output/" + texname.value + "/");
+		if (row_sort.value || col_sort.value) {
+			for (a in intToHex) {
+				FileSystem.createDirectory("output/" + texname.value + "/" + outname + "/" + a + "/");
+			}
+		}
 		for (a in 0...16) {
 			for (b in 0...16) {
 				var color = palette.getPixel(a, b);
+				var subpath = "";
+				if (row_sort.value) subpath = "/" + intToHex[b] + "/";
+				else if (col_sort.value) subpath = "/" + intToHex[a] + "/";
 				work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
 				work_bitmapdata.draw(draw_over);
-				var pathname = "output/" + texname.value + "/" + outname + intToHex[a] + intToHex[b] + ".png";
+				var pathname = "output/" + texname.value + "/" + outname + subpath + intToHex[a] + intToHex[b] + ".png";
 				var bytes:ByteArray = work_bitmapdata.encode(new Rectangle(0, 0, work_bitmapdata.width, work_bitmapdata.height), new PNGEncoderOptions());
 				var png_out:FileOutput = File.write(pathname);
 				png_out.writeBytes(bytes, 0, bytes.length);
