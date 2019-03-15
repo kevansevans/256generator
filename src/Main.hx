@@ -27,7 +27,7 @@ import components.Label;
  */
 class Main extends Sprite 
 {
-	var pallet:BitmapData;
+	var palette:BitmapData;
 	var draw_over:Null<BitmapData> = null;
 	public function new() 
 	{
@@ -41,22 +41,23 @@ class Main extends Sprite
 	var ypos:Int = 0;
 	var work_bitmapdata:BitmapData = new BitmapData(16, 16);
 	var final_bitmap:Bitmap = new Bitmap();
-	var bmp_pallet:Bitmap;
+	var bmp_palette:Bitmap;
 	var final_sprite:Sprite = new Sprite();
 	var bmp_sprite:Sprite = new Sprite();
 	
 	function launch() {
-		pallet = Assets.getBitmapData("img/256original.png");
+		palette = Assets.getBitmapData("img/256original.png");
 		
-		bmp_pallet = new Bitmap(pallet);
+		bmp_palette = new Bitmap(palette);
 		addChild(bmp_sprite);
-		bmp_sprite.addChild(bmp_pallet);
+		bmp_sprite.addChild(bmp_palette);
 		bmp_sprite.scaleX = bmp_sprite.scaleY = 10;
 		bmp_sprite.addEventListener(MouseEvent.CLICK, set_preview);
 		
 		addChild(final_sprite);
 		final_sprite.addChild(final_bitmap);
 		final_sprite.scaleX = final_sprite.scaleY = 5;
+		final_sprite.x = 640;
 		final_sprite.y = 160;
 		final_sprite.addEventListener(MouseEvent.CLICK, function(e:MouseEvent) {
 			if (!hasEventListener(Event.ENTER_FRAME)) {
@@ -73,9 +74,9 @@ class Main extends Sprite
 	var pal_heretic:CheckBox;
 	var pal_hexen:CheckBox;
 	var pal_strife:CheckBox;
+	var pal_quake:CheckBox;
 	var cur_selected:CheckBox;
 	
-	var info:Label;
 	var texname:Label;
 	
 	var drawover_add:IconButton;
@@ -93,69 +94,76 @@ class Main extends Sprite
 			cur_selected.set(false);
 			pal_256.set(true);
 			cur_selected = pal_256;
-			pallet = Assets.getBitmapData("img/256original.png");
-			bmp_pallet.bitmapData = pallet;
+			palette = Assets.getBitmapData("img/256original.png");
+			bmp_palette.bitmapData = palette;
 		}
 		pal_256.x = 170;
 		pal_256.y = 10;
 		cur_selected = pal_256;
 		
-		pal_doom = new CheckBox("Doom pallet", false);
+		pal_doom = new CheckBox("Doom palette", false);
 		addChild(pal_doom);
 		pal_doom.onChange = function() {
 			cur_selected.set(false);
 			pal_doom.set(true);
 			cur_selected = pal_doom;
-			pallet = Assets.getBitmapData("img/doom.png");
-			bmp_pallet.bitmapData = pallet;
+			palette = Assets.getBitmapData("img/doom.png");
+			bmp_palette.bitmapData = palette;
 		}
 		pal_doom.x = 170;
 		pal_doom.y = 30;
 		
-		pal_heretic = new CheckBox("Heretic pallet", false);
+		pal_heretic = new CheckBox("Heretic palette", false);
 		addChild(pal_heretic);
 		pal_heretic.onChange = function() {
 			cur_selected.set(false);
 			pal_heretic.set(true);
 			cur_selected = pal_heretic;
-			pallet = Assets.getBitmapData("img/heretic.png");
-			bmp_pallet.bitmapData = pallet;
+			palette = Assets.getBitmapData("img/heretic.png");
+			bmp_palette.bitmapData = palette;
 		}
 		pal_heretic.x = 170;
 		pal_heretic.y = 50;
 		
-		pal_hexen = new CheckBox("Hexen pallet", false);
+		pal_hexen = new CheckBox("Hexen palette", false);
 		addChild(pal_hexen);
 		pal_hexen.onChange = function() {
 			cur_selected.set(false);
 			pal_hexen.set(true);
 			cur_selected = pal_hexen;
-			pallet = Assets.getBitmapData("img/hexen.png");
-			bmp_pallet.bitmapData = pallet;
+			palette = Assets.getBitmapData("img/hexen.png");
+			bmp_palette.bitmapData = palette;
 		}
 		pal_hexen.x = 170;
 		pal_hexen.y = 70;
 		
-		pal_strife = new CheckBox("Strife pallet", false);
+		pal_strife = new CheckBox("Strife palette", false);
 		addChild(pal_strife);
 		pal_strife.onChange = function() {
 			cur_selected.set(false);
 			pal_strife.set(true);
 			cur_selected = pal_strife;
-			pallet = Assets.getBitmapData("img/strife.png");
-			bmp_pallet.bitmapData = pallet;
+			palette = Assets.getBitmapData("img/strife.png");
+			bmp_palette.bitmapData = palette;
 		}
 		pal_strife.x = 170;
 		pal_strife.y = 90;
 		
-		info = new Label(LabelType.DYNAMIC, "Kevs 256 pallet texture generator. Select your pallet, add a texture to draw over (Must include alpha for any results!), then click generate. This program will make 256 versions of the texture you specify.", 400, 200);
-		addChild(info);
-		info.x = 320;
-		info.y = 10;
+		pal_quake = new CheckBox("Quake palette", false);
+		addChild(pal_quake);
+		pal_quake.onChange = function() {
+			cur_selected.set(false);
+			pal_quake.set(true);
+			cur_selected = pal_quake;
+			palette = Assets.getBitmapData("img/quake.png");
+			bmp_palette.bitmapData = palette;
+		}
+		pal_quake.x = 170;
+		pal_quake.y = 110;
 		
 		texname = new Label(LabelType.INPUT, "My New Texture Pack");
 		addChild(texname);
-		texname.x = 350;
+		texname.x = 10;
 		texname.y = 170;
 		
 		drawover_add = new IconButton("add");
@@ -168,12 +176,12 @@ class Main extends Sprite
 			file_ref.browse([new FileFilter("PNG images", "png")]);
 		}
 		addChild(drawover_add);
-		drawover_add.x = 350;
+		drawover_add.x = 10;
 		drawover_add.y = 210;
 		
 		drawover_label = new Label(LabelType.DYNAMIC, "Add overlay texture");
 		addChild(drawover_label);
-		drawover_label.x = 390;
+		drawover_label.x = 50;
 		drawover_label.y = 210;
 		
 		export = new IconButton("yes");
@@ -181,12 +189,12 @@ class Main extends Sprite
 			export_palette();
 		}
 		addChild(export);
-		export.x = 350;
+		export.x = 10;
 		export.y = 250;
 		
 		export_label = new Label(LabelType.DYNAMIC, "Generate!");
 		addChild(export_label);
-		export_label.x = 390;
+		export_label.x = 50;
 		export_label.y = 250;
 	}
 	function load_drawover(e:Event):Void 
@@ -196,8 +204,8 @@ class Main extends Sprite
 	}
 	function set_preview(e:MouseEvent):Void 
 	{
-		var pos:Point = new Point(bmp_pallet.mouseX, bmp_pallet.mouseY);
-		var color = pallet.getPixel(Std.int(pos.x), Std.int(pos.y));
+		var pos:Point = new Point(bmp_palette.mouseX, bmp_palette.mouseY);
+		var color = palette.getPixel(Std.int(pos.x), Std.int(pos.y));
 		if (draw_over != null) {
 			work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
 			work_bitmapdata.draw(draw_over);
@@ -220,7 +228,7 @@ class Main extends Sprite
 		} else {
 			delay_count = 0;
 		}
-		var color = pallet.getPixel(xpos, ypos);
+		var color = palette.getPixel(xpos, ypos);
 		if (draw_over != null) {
 			work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
 			work_bitmapdata.draw(draw_over);
@@ -242,11 +250,13 @@ class Main extends Sprite
 		removeEventListener(Event.ENTER_FRAME, draw_preview);
 		if (draw_over == null) return;
 		var outname:String = file_ref.name.substr(0, 4);
-		FileSystem.createDirectory("output/" + texname.value + "/");
 		var intToHex:Array<String> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
+		
+		#if sys
+		FileSystem.createDirectory("output/" + texname.value + "/");
 		for (a in 0...16) {
 			for (b in 0...16) {
-				var color = pallet.getPixel(a, b);
+				var color = palette.getPixel(a, b);
 				work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
 				work_bitmapdata.draw(draw_over);
 				var pathname = "output/" + texname.value + "/" + outname + intToHex[a] + intToHex[b] + ".png";
@@ -257,6 +267,9 @@ class Main extends Sprite
 			}
 		}
 		System.openFile('output\\' + texname.value + '\\');
+		#elseif js
+		
+		#end
 		addEventListener(Event.ENTER_FRAME, draw_preview);
 	}
 }
