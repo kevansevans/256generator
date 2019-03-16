@@ -87,6 +87,7 @@ class Main extends Sprite
 	var pal_hexen:CheckBox;
 	var pal_strife:CheckBox;
 	var pal_quake:CheckBox;
+	var pal_invert:CheckBox;
 	var cur_selected:CheckBox;
 	
 	var texname:Label;
@@ -107,7 +108,6 @@ class Main extends Sprite
 	var sprite_mode:CheckBox;
 	function make_ux() 
 	{
-		
 		pal_256 = new CheckBox("256 Colors", true);
 		addChild(pal_256);
 		pal_256.onChange = function() {
@@ -116,6 +116,7 @@ class Main extends Sprite
 			cur_selected = pal_256;
 			palette = Assets.getBitmapData("img/256original.png");
 			bmp_palette.bitmapData = palette;
+			invert_pal();
 		}
 		pal_256.x = 170;
 		pal_256.y = 10;
@@ -128,6 +129,7 @@ class Main extends Sprite
 			pal_doom.set(true);
 			cur_selected = pal_doom;
 			palette = Assets.getBitmapData("img/doom.png");
+			invert_pal();
 			bmp_palette.bitmapData = palette;
 		}
 		pal_doom.x = 170;
@@ -140,6 +142,7 @@ class Main extends Sprite
 			pal_heretic.set(true);
 			cur_selected = pal_heretic;
 			palette = Assets.getBitmapData("img/heretic.png");
+			invert_pal();
 			bmp_palette.bitmapData = palette;
 		}
 		pal_heretic.x = 170;
@@ -152,6 +155,7 @@ class Main extends Sprite
 			pal_hexen.set(true);
 			cur_selected = pal_hexen;
 			palette = Assets.getBitmapData("img/hexen.png");
+			invert_pal();
 			bmp_palette.bitmapData = palette;
 		}
 		pal_hexen.x = 170;
@@ -164,6 +168,7 @@ class Main extends Sprite
 			pal_strife.set(true);
 			cur_selected = pal_strife;
 			palette = Assets.getBitmapData("img/strife.png");
+			invert_pal();
 			bmp_palette.bitmapData = palette;
 		}
 		pal_strife.x = 170;
@@ -176,10 +181,19 @@ class Main extends Sprite
 			pal_quake.set(true);
 			cur_selected = pal_quake;
 			palette = Assets.getBitmapData("img/quake.png");
+			invert_pal();
 			bmp_palette.bitmapData = palette;
 		}
 		pal_quake.x = 170;
 		pal_quake.y = 110;
+		
+		pal_invert = new CheckBox("Invert palette", false);
+		//addChild(pal_invert);
+		pal_invert.onChange = function(e:MouseEvent) {
+			invert_pal(true);
+		}
+		pal_invert.x = 170;
+		pal_invert.y = (bmp_sprite.y + bmp_sprite.height) - (pal_invert.height);
 		
 		texname = new Label(LabelType.INPUT, "My New Texture Pack");
 		addChild(texname);
@@ -256,6 +270,14 @@ class Main extends Sprite
 		}
 		alpha_slider.x = 10;
 		alpha_slider.y = 290;
+	}
+	function invert_pal(_ignore:Bool = false) {
+		if (!pal_invert.value && !_ignore) return;
+		for (a in 0...16) {
+			for (b in 0...16) {
+				palette.setPixel(a, b, 0xFFFFFF - palette.getPixel(a, b));
+			}
+		}
 	}
 	function load_drawover(e:Event):Void 
 	{
