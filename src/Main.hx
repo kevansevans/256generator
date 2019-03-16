@@ -104,6 +104,7 @@ class Main extends Sprite
 	
 	var row_sort:CheckBox;
 	var col_sort:CheckBox;
+	var sprite_mode:CheckBox;
 	function make_ux() 
 	{
 		
@@ -219,18 +220,23 @@ class Main extends Sprite
 		col_sort.x = 10;
 		col_sort.y = 270;
 		
+		sprite_mode = new CheckBox("Sprite mode", false);
+		addChild(sprite_mode);
+		sprite_mode.x = 10;
+		sprite_mode.y = 290;
+		
 		export = new IconButton("yes");
 		export.func_up = function(e:MouseEvent) {
 			export_palette();
 		}
 		addChild(export);
 		export.x = 10;
-		export.y = 310;
+		export.y = 330;
 		
 		export_label = new Label(LabelType.DYNAMIC, "Generate!");
 		addChild(export_label);
 		export_label.x = 50;
-		export_label.y = 310;
+		export_label.y = 330;
 		
 		alpha_slider = new HSlider(0, 200, 100, RoundMode.FLOOR);
 		//addChild(alpha_slider);
@@ -283,12 +289,21 @@ class Main extends Sprite
 		if (draw_over != null) {
 			work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
 			work_bitmapdata.draw(draw_over);
+			if (sprite_mode.value) {
+					for (c in 0...work_bitmapdata.width) {
+						for (d in 0...work_bitmapdata.height) {
+							var place:String = "x" + c + "y" + d;
+							if ((drawover_colors[place] >> 24) & 0xFF != 0) continue;
+							else work_bitmapdata.setPixel32(c, d, 0x00000000);
+						}
+					}
+				}
 		} else {
 			work_bitmapdata = new BitmapData(64, 64, false, color);
 		}
 		final_bitmap.bitmapData = work_bitmapdata;
 		
-		if (hasEventListener(Event.ENTER_FRAME)) {
+		if (hasEventListener(Event.ENTER_FRAME) && e != null) {
 			removeEventListener(Event.ENTER_FRAME, draw_preview);
 		}
 	}
@@ -306,6 +321,15 @@ class Main extends Sprite
 		if (draw_over != null) {
 			work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
 			work_bitmapdata.draw(draw_over);
+			if (sprite_mode.value) {
+					for (c in 0...work_bitmapdata.width) {
+						for (d in 0...work_bitmapdata.height) {
+							var place:String = "x" + c + "y" + d;
+							if ((drawover_colors[place] >> 24) & 0xFF != 0) continue;
+							else work_bitmapdata.setPixel32(c, d, 0x00000000);
+						}
+					}
+				}
 		} else {
 			work_bitmapdata = new BitmapData(64, 64, false, color);
 		}
@@ -342,6 +366,15 @@ class Main extends Sprite
 				work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
 				work_bitmapdata.draw(draw_over);
 				var pathname = "output/" + texname.value + "/" + outname + subpath + intToHex[a] + intToHex[b] + ".png";
+				if (sprite_mode.value) {
+					for (c in 0...work_bitmapdata.width) {
+						for (d in 0...work_bitmapdata.height) {
+							var place:String = "x" + c + "y" + d;
+							if ((drawover_colors[place] >> 24) & 0xFF != 0) continue;
+							else work_bitmapdata.setPixel32(c, d, 0x00000000);
+						}
+					}
+				}
 				var bytes:ByteArray = work_bitmapdata.encode(new Rectangle(0, 0, work_bitmapdata.width, work_bitmapdata.height), new PNGEncoderOptions());
 				var png_out:FileOutput = File.write(pathname);
 				png_out.writeBytes(bytes, 0, bytes.length);
