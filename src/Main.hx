@@ -48,6 +48,7 @@ class Main extends Sprite
 	var scale_slider:HSlider;
 	var final_sprite:Sprite = new Sprite();
 	var bmp_sprite:Sprite = new Sprite();
+	var intToHex:Array<String> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
 	
 	function launch() {
 		palette = Assets.getBitmapData("img/256original.png");
@@ -241,7 +242,7 @@ class Main extends Sprite
 		
 		export = new IconButton("yes");
 		export.func_up = function(e:MouseEvent) {
-			export_palette();
+			step_export_pre();
 		}
 		addChild(export);
 		export.x = 10;
@@ -365,48 +366,86 @@ class Main extends Sprite
 		}
 		final_bitmap.bitmapData = work_bitmapdata;
 	}
-	function export_palette() 
-	{
-		removeEventListener(Event.ENTER_FRAME, draw_preview);
+	var expx:Int;
+	var expy:Int;
+	var outname:String;
+	var subpath = "";
+	var progress_needed:Int = 0;
+	var progress:Int = 0;
+	var prog_bar:ProgressBar;
+	function step_export_pre() {
 		if (draw_over == null) return;
-		var outname:String = file_ref.name.substr(0, 4);
-		var intToHex:Array<String> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
-		
-		#if sys
+		prog_bar = new ProgressBar();
+		addChild(prog_bar);
+		prog_bar.x = 10;
+		prog_bar.y = 710;
+		removeEventListener(Event.ENTER_FRAME, draw_preview);
+		expx = expy = 0;
+		progress = 0;
+		outname = file_ref.name.substr(0, 4);
 		FileSystem.createDirectory("output/" + texname.value + "/");
 		if (row_sort.value || col_sort.value) {
 			for (a in intToHex) {
 				FileSystem.createDirectory("output/" + texname.value + "/" + outname + "/" + a + "/");
 			}
 		}
-		for (a in 0...16) {
-			for (b in 0...16) {
-				var color = palette.getPixel(a, b);
-				var subpath = "";
-				if (row_sort.value) subpath = "/" + intToHex[b] + "/";
-				else if (col_sort.value) subpath = "/" + intToHex[a] + "/";
-				work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
-				work_bitmapdata.draw(draw_over);
-				var pathname = "output/" + texname.value + "/" + outname + subpath + intToHex[a] + intToHex[b] + ".png";
-				if (sprite_mode.value) {
-					for (c in 0...work_bitmapdata.width) {
-						for (d in 0...work_bitmapdata.height) {
-							var place:String = "x" + c + "y" + d;
-							if ((drawover_colors[place] >> 24) & 0xFF != 0) continue;
-							else work_bitmapdata.setPixel32(c, d, 0x00000000);
-						}
-					}
+		addEventListener(Event.ENTER_FRAME, step_export);
+	}
+	function step_export(e:Event):Void 
+	{
+		//info gather
+		var color = palette.getPixel(expx, expy);
+		if (row_sort.value) subpath = "/" + intToHex[expy] + "/";
+		else if (col_sort.value) subpath = "/" + intToHex[expx] + "/";
+		var pathname = "output/" + texname.value + "/" + outname + subpath + intToHex[expx] + intToHex[expy] + ".png";
+		work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
+		work_bitmapdata.draw(draw_over);
+		progress_needed = 256;
+		
+		//Core loop
+		if (sprite_mode.value) {
+			for (c in 0...work_bitmapdata.width) {
+				for (d in 0...work_bitmapdata.height) {
+					var place:String = "x" + c + "y" + d;
+					if ((drawover_colors[place] >> 24) & 0xFF != 0) continue;
+					else work_bitmapdata.setPixel32(c, d, 0x00000000);
 				}
-				var bytes:ByteArray = work_bitmapdata.encode(new Rectangle(0, 0, work_bitmapdata.width, work_bitmapdata.height), new PNGEncoderOptions());
-				var png_out:FileOutput = File.write(pathname);
-				png_out.writeBytes(bytes, 0, bytes.length);
-				png_out.close();
 			}
 		}
-		System.openFile('output\\' + texname.value + '\\');
-		#elseif js
 		
-		#end
-		addEventListener(Event.ENTER_FRAME, draw_preview);
+		//export
+		var bytes:ByteArray = work_bitmapdata.encode(new Rectangle(0, 0, work_bitmapdata.width, work_bitmapdata.height), new PNGEncoderOptions());
+		var png_out:FileOutput = File.write(pathname);
+		png_out.writeBytes(bytes, 0, bytes.length);
+		png_out.close();
+		
+		++progress;
+		
+		//update loop
+		prog_bar.update(progress, progress_needed);
+		++expx;
+		if (expx >= 16) {
+			expx = 0;
+			++expy;
+			if (expy >= 16) {
+				System.openFile('output\\' + texname.value + '\\');
+				removeChild(prog_bar);
+				removeEventListener(Event.ENTER_FRAME, step_export);
+			}
+		}
+	}
+}
+class ProgressBar extends Sprite {
+	public function new() {
+		super();
+	}
+	public function update(_fill:Float, _max:Float) {
+		var ratio:Float = _max / _fill;
+		graphics.clear();
+		graphics.lineStyle(4, 0x00FF00);
+		graphics.moveTo(0, 0);
+		graphics.lineTo(200 * (1 / ratio), 0);
+		graphics.lineStyle(4, 0xFFFFFF);
+		graphics.lineTo(200, 0);
 	}
 }
