@@ -8,7 +8,7 @@
 	<!-- output -->
 	<app main="Main" file="256 Generator" path="bin" />
 	
-	<window background="#000000" fps="60" />
+	<window background="222222" fps="60" />
 	<window width="1280" height="720" unless="mobile" />
 	<window orientation="landscape" vsync="false" antialiasing="0" if="cpp" />
 	
@@ -19,6 +19,7 @@
 	<!-- assets -->
 	<icon path="assets/openfl.svg" />
 	<assets path="assets/img" rename="img" />
+	<assets path="assets/embed" rename="embed" embed="true" />
 	<assets path="assets/fonts" rename="fonts"/>
 	<library path="assets/flash/assets.swf" id="assets" />
 	
