@@ -428,7 +428,11 @@ class Main extends Sprite
 			expx = 0;
 			++expy;
 			if (expy >= 16) {
+				#if windows
 				System.openFile('output\\' + texname.value + '\\');
+				#elseif linux
+				System.openFile('output/' + texname.value + '/');
+				#end
 				removeChild(prog_bar);
 				removeEventListener(Event.ENTER_FRAME, step_export);
 			}
