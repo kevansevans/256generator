@@ -31,7 +31,7 @@ import components.Label;
 class Main extends Sprite 
 {
 	var palette:BitmapData;
-	var draw_over:Null<BitmapData> = null;
+	var draw_over:BitmapData;
 	public function new() 
 	{
 		super();
