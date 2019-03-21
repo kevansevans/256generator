@@ -49,9 +49,14 @@ class Main extends Sprite
 	var final_sprite:Sprite = new Sprite();
 	var bmp_sprite:Sprite = new Sprite();
 	var intToHex:Array<String> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
+	var bg_sprite:Sprite;
+	var bg_fill:BitmapData = Assets.getBitmapData("embed/bg_fill.png");
 	
 	function launch() {
 		palette = Assets.getBitmapData("img/256original.png");
+		
+		bg_sprite = new Sprite();
+		addChild(bg_sprite);
 		
 		bmp_palette = new Bitmap(palette);
 		addChild(bmp_sprite);
@@ -78,6 +83,7 @@ class Main extends Sprite
 		addChild(scale_slider);
 		scale_slider.onChange = function() {
 			final_sprite.scaleX = final_sprite.scaleY = scale_slider.value;
+			draw_bg();
 		}
 		scale_slider.x = 340;
 		scale_slider.y = 15;
@@ -275,6 +281,16 @@ class Main extends Sprite
 		}
 		alpha_slider.x = 10;
 		alpha_slider.y = 290;
+	function draw_bg() 
+	{
+		bg_sprite.graphics.clear();
+		if (!sprite_mode.value) return;
+		bg_sprite.graphics.beginBitmapFill(bg_fill, null, true);
+		bg_sprite.graphics.moveTo(0, 0);
+		bg_sprite.graphics.lineTo(0, final_sprite.height);
+		bg_sprite.graphics.lineTo(final_sprite.width, final_sprite.height);
+		bg_sprite.graphics.lineTo(final_sprite.width, 0);
+		bg_sprite.graphics.lineTo(0, 0);
 	}
 	function invert_pal(_ignore:Bool = false) {
 		if (!pal_invert.value && !_ignore) return;
