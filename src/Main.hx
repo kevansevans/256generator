@@ -71,12 +71,8 @@ class Main extends Sprite
 		addChild(final_sprite);
 		final_sprite.addChild(final_bitmap);
 		final_sprite.scaleX = final_sprite.scaleY = 5;
-		final_sprite.x = 340;
-		final_sprite.y = 30;
 		final_sprite.addEventListener(MouseEvent.CLICK, function(e:MouseEvent) {
 			cycle = true;
-				addEventListener(Event.ENTER_FRAME, draw_preview);
-			}
 		});
 		
 		scale_slider = new HSlider(0.5, 15, 5);
@@ -85,12 +81,12 @@ class Main extends Sprite
 			final_sprite.scaleX = final_sprite.scaleY = scale_slider.value;
 			draw_bg();
 		}
-		scale_slider.x = 340;
-		scale_slider.y = 15;
 		
 		this.addEventListener(Event.ENTER_FRAME, draw_preview);
 		
 		make_ux();
+		
+		Lib.current.stage.addEventListener(Event.RESIZE, resize);
 	}
 	var pal_256:CheckBox;
 	var pal_doom:CheckBox;
@@ -129,8 +125,6 @@ class Main extends Sprite
 			bmp_palette.bitmapData = palette;
 			invert_pal();
 		}
-		pal_256.x = 170;
-		pal_256.y = 10;
 		cur_selected = pal_256;
 		
 		pal_doom = new CheckBox("Doom palette", false);
@@ -143,8 +137,6 @@ class Main extends Sprite
 			invert_pal();
 			bmp_palette.bitmapData = palette;
 		}
-		pal_doom.x = 170;
-		pal_doom.y = 30;
 		
 		pal_heretic = new CheckBox("Heretic palette", false);
 		addChild(pal_heretic);
@@ -156,8 +148,6 @@ class Main extends Sprite
 			invert_pal();
 			bmp_palette.bitmapData = palette;
 		}
-		pal_heretic.x = 170;
-		pal_heretic.y = 50;
 		
 		pal_hexen = new CheckBox("Hexen palette", false);
 		addChild(pal_hexen);
@@ -169,8 +159,6 @@ class Main extends Sprite
 			invert_pal();
 			bmp_palette.bitmapData = palette;
 		}
-		pal_hexen.x = 170;
-		pal_hexen.y = 70;
 		
 		pal_strife = new CheckBox("Strife palette", false);
 		addChild(pal_strife);
@@ -182,8 +170,6 @@ class Main extends Sprite
 			invert_pal();
 			bmp_palette.bitmapData = palette;
 		}
-		pal_strife.x = 170;
-		pal_strife.y = 90;
 		
 		pal_quake = new CheckBox("Quake palette", false);
 		addChild(pal_quake);
@@ -195,21 +181,15 @@ class Main extends Sprite
 			invert_pal();
 			bmp_palette.bitmapData = palette;
 		}
-		pal_quake.x = 170;
-		pal_quake.y = 110;
 		
 		pal_invert = new CheckBox("Invert palette", false);
 		//addChild(pal_invert);
 		pal_invert.onChange = function(e:MouseEvent) {
 			invert_pal(true);
 		}
-		pal_invert.x = 170;
-		pal_invert.y = (bmp_sprite.y + bmp_sprite.height) - (pal_invert.height);
 		
 		texname = new Label(LabelType.INPUT, "My New Texture Pack");
 		addChild(texname);
-		texname.x = 10;
-		texname.y = 170;
 		
 		drawover_add = new IconButton("add");
 		drawover_add.func_up = function(e:MouseEvent) {
@@ -221,47 +201,33 @@ class Main extends Sprite
 			file_ref.browse([new FileFilter("PNG images", "png")]);
 		}
 		addChild(drawover_add);
-		drawover_add.x = 10;
-		drawover_add.y = 210;
 		
 		drawover_label = new Label(LabelType.DYNAMIC, "Add overlay texture");
 		addChild(drawover_label);
-		drawover_label.x = 50;
-		drawover_label.y = 210;
 		
 		row_sort = new CheckBox("Sort by row", false);
 		row_sort.onChange = function(e:MouseEvent) {
 			if (col_sort.value) col_sort.set(false);
 		}
 		addChild(row_sort);
-		row_sort.x = 10;
-		row_sort.y = 250;
 		
 		col_sort = new CheckBox("Sort by column", false);
 		addChild(col_sort);
 		col_sort.onChange = function(e:MouseEvent) {
 			if (row_sort.value) row_sort.set(false);
 		}
-		col_sort.x = 10;
-		col_sort.y = 270;
 		
 		sprite_mode = new CheckBox("Sprite mode", false);
 		addChild(sprite_mode);
-		sprite_mode.x = 10;
-		sprite_mode.y = 290;
 		
 		export = new IconButton("yes");
 		export.func_up = function(e:MouseEvent) {
 			step_export_pre();
 		}
 		addChild(export);
-		export.x = 10;
-		export.y = 330;
 		
 		export_label = new Label(LabelType.DYNAMIC, "Generate!");
 		addChild(export_label);
-		export_label.x = 50;
-		export_label.y = 330;
 		
 		alpha_slider = new HSlider(0, 200, 100, RoundMode.FLOOR);
 		//addChild(alpha_slider);
@@ -279,8 +245,79 @@ class Main extends Sprite
 				}
 			}
 		}
+		prog_bar = new ProgressBar();
+		
+		resize();
+		draw_bg();
+	}
+	function resize(?e:Event) {
+		bmp_sprite.x = 10;
+		bmp_sprite.y = 10;
+		
+		scale_slider.x = bmp_sprite.x + bmp_sprite.width + 170;
+		scale_slider.y = 15;
+		
+		sprite_mode.x = scale_slider.x + scale_slider.width + 10;
+		sprite_mode.y = 6;
+		
+		drawover_add.x = sprite_mode.x + sprite_mode.width + 10;
+		drawover_add.y = 5;
+		
+		drawover_label.x = drawover_add.x + drawover_add.width + 5;
+		drawover_label.y = drawover_label.y + 5;
+		
+		final_sprite.x = scale_slider.x;
+		final_sprite.y = scale_slider.y + 25;
+		
+		bg_sprite.x = final_sprite.x;
+		bg_sprite.y = final_sprite.y;
+		
+		pal_256.x = bmp_sprite.x + bmp_sprite.width + 10;
+		pal_256.y = 10;
+		
+		pal_doom.x = pal_256.x;
+		pal_doom.y = pal_256.y + 20;
+		
+		pal_heretic.x = pal_256.x;
+		pal_heretic.y = pal_doom.y + 20;
+		
+		pal_hexen.x = pal_256.x;
+		pal_hexen.y = pal_heretic.y + 20;
+		
+		pal_strife.x = pal_256.x;
+		pal_strife.y = pal_hexen.y + 20;
+		
+		pal_quake.x = pal_256.x;
+		pal_quake.y = pal_strife.y + 20;
+		
+		pal_invert_hue.x = 10;
+		pal_invert_hue.y = bmp_sprite.y + bmp_sprite.height + 20;
+		
+		alpha_selective.x = 10;
+		alpha_selective.y = bmp_sprite.y + bmp_sprite.height + 20;
+		
 		alpha_slider.x = 10;
-		alpha_slider.y = 290;
+		alpha_slider.y = alpha_selective.y + 30;
+		
+		export.x = 10;
+		export.y = Lib.current.stage.stageHeight - export.height - 20;
+		
+		export_label.x = export.x + export.width;
+		export_label.y = export.y + 5;
+		
+		col_sort.x = 10;
+		col_sort.y = export.y - 20;
+		
+		row_sort.x = 10;
+		row_sort.y = col_sort.y - 20;
+		
+		texname.x = 10;
+		texname.y = row_sort.y - 40;
+		
+		prog_bar.x = 10;
+		prog_bar.y = Lib.current.stage.stageHeight - 10;
+	}
+	
 	function draw_bg() 
 	{
 		bg_sprite.graphics.clear();
