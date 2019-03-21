@@ -48,12 +48,13 @@ class Main extends Sprite
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//Array
 	var drawover_colors:Map<String, Int>;
+	var workbmp_colors:Map<String, Int>;
 	var intToHex:Array<String> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
 	
 	//Bool
 	var cycle:Bool = true;
 	var hue_inverted:Bool = false;
-	var sat_inverted:Bool = false;
+	var lum_inverted:Bool = false;
 	//these are stupid but necesary
 	var hue_256_inv:Bool = false;
 	var hue_doom_inv:Bool = false;
@@ -61,6 +62,12 @@ class Main extends Sprite
 	var hue_hexen_inv:Bool = false;
 	var hue_strife_inv:Bool = false;
 	var hue_quake_inv:Bool = false;
+	var lum_256_inv:Bool = false;
+	var lum_doom_inv:Bool = false;
+	var lum_heretic_inv:Bool = false;
+	var lum_hexen_inv:Bool = false;
+	var lum_strife_inv:Bool = false;
+	var lum_quake_inv:Bool = false;
 	
 	//Bitmap
 	var bg_fill:BitmapData;
@@ -93,12 +100,14 @@ class Main extends Sprite
 	//slider
 	var alpha_slider:HSlider;
 	var capalpha_slider:HSlider;
+	var saturation_slider:HSlider;
 	var scale_slider:HSlider;
 	
 	//Label
 	var alpha_amount:Label;
 	var drawover_label:Label;
 	var export_label:Label;
+	var saturation_label:Label;
 	var texname:Label;
 	
 	//Butons
@@ -146,6 +155,7 @@ class Main extends Sprite
 			palx = Std.int(bmp_palette.mouseX);
 			paly = Std.int(bmp_palette.mouseY);
 			cycle = false;
+			needsToUpdate = true;
 		});
 		
 		addChild(final_sprite);
@@ -153,6 +163,7 @@ class Main extends Sprite
 		final_sprite.scaleX = final_sprite.scaleY = 5;
 		final_sprite.addEventListener(MouseEvent.CLICK, function(e:MouseEvent) {
 			cycle = true;
+			needsToUpdate = true;
 		});
 		
 		scale_slider = new HSlider(0.5, 15, 5, RoundMode.NONE);
@@ -295,6 +306,17 @@ class Main extends Sprite
 			update_drawover_alpha();
 		}
 		
+		saturation_label = new Label();
+		saturation_label.value = "Saturation: 100%";
+		addChild(saturation_label);
+		
+		saturation_slider = new HSlider(0, 200, 100);
+		saturation_slider.onChange = function(e:MouseEvent) {
+			update_drawover_saturation();
+			update_drawover_alpha();
+		}
+		addChild(saturation_slider);
+		
 		prog_bar = new ProgressBar();
 		
 		resize();
@@ -357,6 +379,26 @@ class Main extends Sprite
 			}
 			alpha_amount.value = "Alpha: " + alpha_slider.value + "% Cap: " + capalpha_slider.value;
 	}
+	function update_drawover_saturation() {
+		saturation_label.value = "Saturation: " + saturation_slider.value + "%";
+		for (c in 0...draw_over.width) {
+			for (d in 0...draw_over.height) {
+				var place:String = "x" + c + "y" + d;
+				if (alpha_selective.value && (((drawover_colors[place] >> 24) & 0xFF) == 0xFF || ((drawover_colors[place] >> 24) & 0xFF) == 0x0)) continue;
+				var ratio = saturation_slider.value / 100;
+				var ARGB = drawover_colors[place];
+				var alpha = ARGB & 0xFF000000;
+				var red:Float = (ARGB >> 16) & 0xFF;
+				var grn:Float = (ARGB >> 8) & 0xFF;
+				var blu:Float = ARGB & 0xFF;
+				red = Math.min(red * ratio, 0xFF);
+				grn = Math.min(grn * ratio, 0xFF);
+				blu = Math.min(blu * ratio, 0xFF);
+				var color = Std.int(red) << 16 | Std.int(grn) << 8 | Std.int(blu);
+				draw_over.setPixel(c, d, color);
+			}
+		}
+	}
 	function resize(?e:Event) {
 		bmp_sprite.x = 10;
 		bmp_sprite.y = 10;
@@ -411,6 +453,12 @@ class Main extends Sprite
 		
 		capalpha_slider.x = 10;
 		capalpha_slider.y = alpha_slider.y + 20;
+		
+		saturation_label.x = 10;
+		saturation_label.y = capalpha_slider.y + 15;
+		
+		saturation_slider.x = 10;
+		saturation_slider.y = saturation_label.y + 35;
 		
 		export.x = 10;
 		export.y = Lib.current.stage.stageHeight - export.height - 20;
@@ -498,6 +546,47 @@ class Main extends Sprite
 		}
 		bmp_palette.bitmapData = palette;
 	}
+	function invert_luminance(?_pal:GamePalette) {
+		switch (_pal) {
+			case GamePalette.C256 :
+				if (lum_inverted == lum_256_inv) return;
+				else lum_256_inv = lum_inverted;
+			case GamePalette.DOOM :
+				if (lum_inverted == lum_doom_inv) return;
+				else lum_doom_inv = lum_inverted;
+			case GamePalette.HERETIC :
+				if (lum_inverted == lum_heretic_inv) return;
+				else lum_heretic_inv = lum_inverted;
+			case GamePalette.HEXEN :
+				if (lum_inverted == lum_hexen_inv) return;
+				else lum_hexen_inv = lum_inverted;
+			case GamePalette.STRIFE :
+				if (lum_inverted == lum_strife_inv) return;
+				else lum_strife_inv = lum_inverted;
+			case GamePalette.QUAKE :
+				if (lum_inverted == lum_quake_inv) return;
+				else lum_quake_inv = lum_inverted;
+			default :
+				if (cur_selected == pal_256) {
+					lum_256_inv = lum_inverted;
+				}
+				if (cur_selected == pal_doom) {
+					lum_doom_inv = lum_inverted;
+				}
+				if (cur_selected == pal_heretic) {
+					lum_heretic_inv = lum_inverted;
+				}
+				if (cur_selected == pal_hexen) {
+					lum_hexen_inv = lum_inverted;
+				}
+				if (cur_selected == pal_strife) {
+					lum_strife_inv = lum_inverted;
+				}
+				if (cur_selected == pal_quake) {
+					lum_quake_inv = lum_inverted;
+				}
+		}
+	}
 	#if js
 	function js_load(_byteArray:ByteArray) {
 		var future = BitmapData.loadFromBytes(_byteArray);
@@ -529,6 +618,8 @@ class Main extends Sprite
 	var delay:Int = 30;
 	var delay_count:Int = 0;
 	
+	var needsToUpdate:Bool = false;
+	
 	function draw_preview(e:Event):Void 
 	{
 		if (delay_count <= delay) {
@@ -541,18 +632,29 @@ class Main extends Sprite
 			work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
 			work_bitmapdata.draw(draw_over);
 			if (sprite_mode.value) {
-					for (c in 0...work_bitmapdata.width) {
-						for (d in 0...work_bitmapdata.height) {
-							var place:String = "x" + c + "y" + d;
-							if ((drawover_colors[place] >> 24) & 0xFF != 0) continue;
-							else work_bitmapdata.setPixel32(c, d, 0x00000000);
-						}
+				for (c in 0...work_bitmapdata.width) {
+					for (d in 0...work_bitmapdata.height) {
+						var place:String = "x" + c + "y" + d;
+						if ((drawover_colors[place] >> 24) & 0xFF != 0) continue;
+						else work_bitmapdata.setPixel32(c, d, 0x00000000);
 					}
 				}
+			}
 		} else {
 			work_bitmapdata = new BitmapData(64, 64, false, color);
 		}
+		if (needsToUpdate) {
+			workbmp_colors = new Map<String, Int>();
+			for (a in 0...work_bitmapdata.width) {
+				for (b in 0...work_bitmapdata.height) {
+					var place = "x" + a + "y" + b;
+					workbmp_colors[place] = work_bitmapdata.getPixel32(a, b);
+				}
+			}
+			needsToUpdate = false;
+		}
 		if (cycle && delay_count == 0) {
+			needsToUpdate = true;
 			++palx;
 			if (palx > 15) {
 				palx = 0;
