@@ -360,6 +360,14 @@ class Main extends Sprite
 				palette.setPixel(a, b, 0xFFFFFF - palette.getPixel(a, b));
 			}
 		}
+	#if js
+	function js_load(_byteArray:ByteArray) {
+		var future = BitmapData.loadFromBytes(_byteArray);
+		future.onComplete( function(image) 
+		{
+			draw_over = image;
+			load_drawover();
+		});
 	}
 	#end
 	function load_drawover(?e:Event):Void 
