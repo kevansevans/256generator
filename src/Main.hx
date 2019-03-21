@@ -354,12 +354,23 @@ class Main extends Sprite
 		bg_sprite.graphics.lineTo(0, 0);
 	}
 	function invert_pal(_ignore:Bool = false) {
-		if (!pal_invert.value && !_ignore) return;
+		if (!pal_invert_hue.value && !_ignore) return;
 		for (a in 0...16) {
 			for (b in 0...16) {
-				palette.setPixel(a, b, 0xFFFFFF - palette.getPixel(a, b));
+				var rgb = palette.getPixel(a, b);
+				var red = rgb >> 16;
+				var grn = (rgb >> 8) & 0xFF;
+				var blu = rgb & 0xFF;
+				var c = Std.int(((Math.max(red, Math.max(grn, blu)) + Math.min(red, Math.min(grn, blu)))));
+				var new_red = c - red;
+				var new_grn = c - grn;
+				var new_blu = c - blu;
+				var color = new_red << 16 | new_grn << 8 | new_blu;
+				palette.setPixel(a, b, color);
 			}
 		}
+		bmp_palette.bitmapData = palette;
+	}
 	#if js
 	function js_load(_byteArray:ByteArray) {
 		var future = BitmapData.loadFromBytes(_byteArray);
