@@ -73,6 +73,7 @@ class Main extends Sprite
 	
 	//slider
 	var alpha_slider:HSlider;
+	var capalpha_slider:HSlider;
 	var scale_slider:HSlider;
 	
 	//Label
@@ -274,16 +275,31 @@ class Main extends Sprite
 		export_label = new Label(LabelType.DYNAMIC, "Generate!");
 		addChild(export_label);
 		
-		alpha_amount = new Label(LabelType.DYNAMIC, "Alpha: 100%");
+		alpha_amount = new Label(LabelType.DYNAMIC, "Alpha: 100% Cap: 255");
 		addChild(alpha_amount);
 		
 		alpha_selective = new CheckBox("Selective Alpha", false);
 		addChild(alpha_selective);
 		
-		alpha_slider = new HSlider(0, 200, 100, RoundMode.FLOOR);
+		alpha_slider = new HSlider(0, 500, 100, RoundMode.FLOOR);
 		addChild(alpha_slider);
 		alpha_slider.onChange = function(e:MouseEvent) {
-			if (draw_over == null) return;
+			update_drawover_alpha();
+		}
+		
+		capalpha_slider = new HSlider(0, 255, 255, RoundMode.FLOOR);
+		addChild(capalpha_slider);
+		capalpha_slider.onChange = function(e:MouseEvent) {
+			update_drawover_alpha();
+		}
+		
+		prog_bar = new ProgressBar();
+		
+		resize();
+		draw_bg();
+	}
+	function update_drawover_alpha() {
+		if (draw_over == null) return;
 			for (a in 0...draw_over.width) {
 				for (b in 0...draw_over.height) {
 					var place = "x" + a + "y" + b;
@@ -292,19 +308,13 @@ class Main extends Sprite
 						var color = drawover_colors[place];
 						var ratio = alpha_slider.value / 100;
 						var alpha:Float = ((color >> 24) & 0xFF) * ratio;
-						if (alpha > 0xFF) alpha = 0xFF;
+						if (alpha > capalpha_slider.value) alpha = capalpha_slider.value;
 						var color_new = (Std.int(alpha) << 24) | (color & 0xFFFFFF);
 						draw_over.setPixel32(a, b, color_new);
 					}
 				}
 			}
-			alpha_amount.value = "Alpha: " + alpha_slider.value + "%";
-		}
-		
-		prog_bar = new ProgressBar();
-		
-		resize();
-		draw_bg();
+			alpha_amount.value = "Alpha: " + alpha_slider.value + "% Cap: " + capalpha_slider.value;
 	}
 	function resize(?e:Event) {
 		bmp_sprite.x = 10;
@@ -357,6 +367,9 @@ class Main extends Sprite
 		
 		alpha_slider.x = 10;
 		alpha_slider.y = alpha_selective.y + 30;
+		
+		capalpha_slider.x = 10;
+		capalpha_slider.y = alpha_slider.y + 20;
 		
 		export.x = 10;
 		export.y = Lib.current.stage.stageHeight - export.height - 20;
