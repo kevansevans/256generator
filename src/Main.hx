@@ -361,11 +361,13 @@ class Main extends Sprite
 			}
 		}
 	}
-	function load_drawover(e:Event):Void 
+	#end
+	function load_drawover(?e:Event):Void 
 	{
-		draw_over = BitmapData.fromBytes(file_ref.data);
-		drawover_label.set(file_ref.name);
-		
+		if (e != null) {
+			draw_over = BitmapData.fromBytes(file_ref.data);
+			drawover_label.set(file_ref.name);
+		}
 		drawover_colors = new Map();
 		for (a in 0...draw_over.width) {
 			for (b in 0...draw_over.height) {
