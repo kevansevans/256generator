@@ -26,12 +26,66 @@ import components.HSlider;
 
 /**
  * ...
- * @author Kaelan
+ * @author Kevansevans
+ * 
+ * Thanks for checking out my program. Please check out the Readme for compiling instructions.
+ * The UI is a custom made library I've been slowly working on over time to suit my personal needs. It's not recommended you fiddle with this part of the
+ * source as it's not integral to the program over all. Feel free to ask for help if you need it.
+ * 
  */
 class Main extends Sprite 
 {
-	var palette:BitmapData;
+	//Important variables
+	//Array
+	var drawover_colors:Map<String, Int>;
+	var intToHex:Array<String> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
+	
+	//Bool
+	var cycle:Bool = true;
+	
+	//Bitmap
+	var bg_fill:BitmapData;
+	var bmp_palette:Bitmap;
 	var draw_over:BitmapData;
+	var final_bitmap:Bitmap = new Bitmap();
+	var palette:BitmapData;
+	var work_bitmapdata:BitmapData = new BitmapData(16, 16);
+	
+	//Sprite (Not a catch all, the class type)
+	var bg_sprite:Sprite;
+	var bmp_sprite:Sprite = new Sprite();
+	var final_sprite:Sprite = new Sprite();
+	
+	//Checkbox
+	var alpha_selective:CheckBox;
+	var cur_selected:CheckBox;
+	var col_sort:CheckBox;
+	var pal_256:CheckBox;
+	var pal_doom:CheckBox;
+	var pal_heretic:CheckBox;
+	var pal_hexen:CheckBox;
+	var pal_strife:CheckBox;
+	var pal_quake:CheckBox;
+	var pal_invert_hue:CheckBox;
+	var pal_invert_sat:CheckBox;
+	var row_sort:CheckBox;
+	var sprite_mode:CheckBox;
+	
+	//slider
+	var alpha_slider:HSlider;
+	var scale_slider:HSlider;
+	
+	//Label
+	var drawover_label:Label;
+	var export_label:Label;
+	var texname:Label;
+	
+	//Butons
+	var drawover_add:IconButton;
+	var export:IconButton;
+	
+	//other
+	var file_ref:FileReference;
 	public function new() 
 	{
 		super();
@@ -42,17 +96,8 @@ class Main extends Sprite
 			this.launch();
 		});
 	}
-	var work_bitmapdata:BitmapData = new BitmapData(16, 16);
-	var final_bitmap:Bitmap = new Bitmap();
-	var bmp_palette:Bitmap;
-	var scale_slider:HSlider;
-	var final_sprite:Sprite = new Sprite();
-	var bmp_sprite:Sprite = new Sprite();
-	var intToHex:Array<String> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
-	var bg_sprite:Sprite;
-	var bg_fill:BitmapData = Assets.getBitmapData("embed/bg_fill.png");
-	
 	function launch() {
+		bg_fill = Assets.getBitmapData("embed/bg_fill.png");
 		palette = Assets.getBitmapData("img/256original.png");
 		
 		make_ux();
@@ -61,32 +106,6 @@ class Main extends Sprite
 		
 		Lib.current.stage.addEventListener(Event.RESIZE, resize);
 	}
-	var pal_256:CheckBox;
-	var pal_doom:CheckBox;
-	var pal_heretic:CheckBox;
-	var pal_hexen:CheckBox;
-	var pal_strife:CheckBox;
-	var pal_quake:CheckBox;
-	var pal_invert_hue:CheckBox;
-	var pal_invert_sat:CheckBox;
-	var cur_selected:CheckBox;
-	
-	var texname:Label;
-	
-	var drawover_colors:Map<String, Int>;
-	var drawover_add:IconButton;
-	var drawover_label:Label;
-	var file_ref:FileReference;
-	
-	var export:IconButton;
-	var export_label:Label;
-	
-	var alpha_selective:CheckBox;
-	var alpha_slider:HSlider;
-	
-	var row_sort:CheckBox;
-	var col_sort:CheckBox;
-	var sprite_mode:CheckBox;
 	function make_ux() 
 	{
 		bg_sprite = new Sprite();
@@ -349,7 +368,6 @@ class Main extends Sprite
 		prog_bar.x = 10;
 		prog_bar.y = Lib.current.stage.stageHeight - 10;
 	}
-	
 	function draw_bg() 
 	{
 		bg_sprite.graphics.clear();
@@ -409,7 +427,6 @@ class Main extends Sprite
 	var delay:Int = 30;
 	var delay_count:Int = 0;
 	
-	var cycle:Bool = true;
 	function draw_preview(e:Event):Void 
 	{
 		if (delay_count <= delay) {
@@ -522,7 +539,7 @@ class Main extends Sprite
 		if (expx >= 16) {
 			expx = 0;
 			++expy;
-			if (expy >= 16) {
+			if (expy >= 16) { //when the loop finishes
 				#if windows
 				System.openFile('output\\' + texname.value + '\\');
 				#elseif linux
@@ -535,6 +552,7 @@ class Main extends Sprite
 				#end
 				removeChild(prog_bar);
 				removeEventListener(Event.ENTER_FRAME, step_export);
+				addEventListener(Event.ENTER_FRAME, draw_preview);
 			}
 		}
 	}
