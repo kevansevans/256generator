@@ -193,12 +193,36 @@ class Main extends Sprite
 		
 		drawover_add = new IconButton("add");
 		drawover_add.func_up = function(e:MouseEvent) {
-			file_ref = new FileReference();
-			file_ref.addEventListener(Event.COMPLETE, load_drawover);
-			file_ref.addEventListener(Event.SELECT, function(e:Event) {
-				file_ref.load();
-			});
-			file_ref.browse([new FileFilter("PNG images", "png")]);
+			#if sys
+				file_ref = new FileReference();
+				file_ref.addEventListener(Event.COMPLETE, load_drawover);
+				file_ref.addEventListener(Event.SELECT, function(e:Event) {
+					file_ref.load();
+				});
+				file_ref.browse([new FileFilter("PNG images", "png")]);
+			#elseif js
+				var input = js.Browser.document.createElement("input");
+				input.style.visibility = "hidden"; //comment this to test
+				input.setAttribute("type", "file");
+				input.id = "browse";
+				input.onclick = function(e) {
+					e.cancelBubble = true;
+					e.stopPropagation();
+				}
+				input.onchange = function() {
+					untyped var file = input.files[0];
+					var reader = new js.html.FileReader();
+					reader.onload = function(evt) {
+						var buffer:ArrayBuffer = cast(evt.target.result, ArrayBuffer);
+						var array:ByteArray = ByteArray.fromArrayBuffer(buffer);
+						js_load(array);
+						js.Browser.document.body.removeChild(input);
+					}
+					reader.readAsArrayBuffer(file);
+				}
+				js.Browser.document.body.appendChild(input);
+				input.click();
+			#end
 		}
 		addChild(drawover_add);
 		
