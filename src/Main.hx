@@ -36,6 +36,8 @@ class Main extends Sprite
 	{
 		super();
 		
+		mouseEnabled = false;
+		
 		Assets.loadLibrary("assets").onComplete(function(library) {
 			this.launch();
 		});
