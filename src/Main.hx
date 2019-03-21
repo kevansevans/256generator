@@ -42,8 +42,6 @@ class Main extends Sprite
 			this.launch();
 		});
 	}
-	var xpos:Int = 0;
-	var ypos:Int = 0;
 	var work_bitmapdata:BitmapData = new BitmapData(16, 16);
 	var final_bitmap:Bitmap = new Bitmap();
 	var bmp_palette:Bitmap;
@@ -59,7 +57,11 @@ class Main extends Sprite
 		addChild(bmp_sprite);
 		bmp_sprite.addChild(bmp_palette);
 		bmp_sprite.scaleX = bmp_sprite.scaleY = 10;
-		bmp_sprite.addEventListener(MouseEvent.CLICK, set_preview);
+		bmp_sprite.addEventListener(MouseEvent.CLICK, function(e:MouseEvent) {
+			palx = Std.int(bmp_palette.mouseX);
+			paly = Std.int(bmp_palette.mouseY);
+			cycle = false;
+		});
 		
 		addChild(final_sprite);
 		final_sprite.addChild(final_bitmap);
@@ -67,7 +69,7 @@ class Main extends Sprite
 		final_sprite.x = 340;
 		final_sprite.y = 30;
 		final_sprite.addEventListener(MouseEvent.CLICK, function(e:MouseEvent) {
-			if (!hasEventListener(Event.ENTER_FRAME)) {
+			cycle = true;
 				addEventListener(Event.ENTER_FRAME, draw_preview);
 			}
 		});
@@ -294,55 +296,22 @@ class Main extends Sprite
 				drawover_colors[place] = draw_over.getPixel32(a, b);
 			}
 		}
-		
-		set_preview();
 	}
 	var palx:Int = 0;
 	var paly:Int = 0;
-	function set_preview(?e:MouseEvent):Void 
-	{
-		var pos:Point;
-		var color:Int;
-		if (e == null) {
-			pos = new Point(palx, paly);
-		} else {
-			pos = new Point(bmp_palette.mouseX, bmp_palette.mouseY);
-			palx = Std.int(pos.x);
-			paly = Std.int(pos.y);
-		}
-		color = palette.getPixel(Std.int(pos.x), Std.int(pos.y));
-		if (draw_over != null) {
-			work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
-			work_bitmapdata.draw(draw_over);
-			if (sprite_mode.value) {
-					for (c in 0...work_bitmapdata.width) {
-						for (d in 0...work_bitmapdata.height) {
-							var place:String = "x" + c + "y" + d;
-							if ((drawover_colors[place] >> 24) & 0xFF != 0) continue;
-							else work_bitmapdata.setPixel32(c, d, 0x00000000);
-						}
-					}
-				}
-		} else {
-			work_bitmapdata = new BitmapData(64, 64, false, color);
-		}
-		final_bitmap.bitmapData = work_bitmapdata;
-		
-		if (hasEventListener(Event.ENTER_FRAME) && e != null) {
-			removeEventListener(Event.ENTER_FRAME, draw_preview);
-		}
-	}
+	
 	var delay:Int = 30;
 	var delay_count:Int = 0;
+	
+	var cycle:Bool = true;
 	function draw_preview(e:Event):Void 
 	{
 		if (delay_count <= delay) {
 			++delay_count;
-			return;
 		} else {
 			delay_count = 0;
 		}
-		var color = palette.getPixel(xpos, ypos);
+		var color = palette.getPixel(palx, paly);
 		if (draw_over != null) {
 			work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
 			work_bitmapdata.draw(draw_over);
@@ -358,14 +327,17 @@ class Main extends Sprite
 		} else {
 			work_bitmapdata = new BitmapData(64, 64, false, color);
 		}
-		++xpos;
-		if (xpos > 15) {
-			xpos = 0;
-			++ypos;
-			if (ypos > 15) {
-				ypos = 0;
+		if (cycle && delay_count == 0) {
+			++palx;
+			if (palx > 15) {
+				palx = 0;
+				++paly;
+				if (paly > 15) {
+					paly = 0;
+				}
 			}
 		}
+		draw_bg();
 		final_bitmap.bitmapData = work_bitmapdata;
 	}
 	var expx:Int;
