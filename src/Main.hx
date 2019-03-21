@@ -129,7 +129,7 @@ class Main extends Sprite
 			cycle = true;
 		});
 		
-		scale_slider = new HSlider(0.5, 15, 5);
+		scale_slider = new HSlider(0.5, 15, 5, RoundMode.NONE);
 		addChild(scale_slider);
 		scale_slider.onChange = function() {
 			final_sprite.scaleX = final_sprite.scaleY = scale_slider.value;
