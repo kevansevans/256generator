@@ -1,7 +1,7 @@
 package;
 
-import components.HSlider;
 import lime.system.System;
+import openfl.Lib;
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
 import openfl.display.Sprite;
@@ -9,7 +9,6 @@ import openfl.events.Event;
 import openfl.events.MouseEvent;
 import openfl.utils.ByteArray;
 import openfl.Assets;
-import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.net.FileReference;
 import openfl.net.FileFilter;
@@ -23,6 +22,7 @@ import sys.io.File;
 import components.CheckBox;
 import components.IconButton;
 import components.Label;
+import components.HSlider;
 
 /**
  * ...
