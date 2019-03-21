@@ -76,6 +76,7 @@ class Main extends Sprite
 	var scale_slider:HSlider;
 	
 	//Label
+	var alpha_amount:Label;
 	var drawover_label:Label;
 	var export_label:Label;
 	var texname:Label;
@@ -273,6 +274,9 @@ class Main extends Sprite
 		export_label = new Label(LabelType.DYNAMIC, "Generate!");
 		addChild(export_label);
 		
+		alpha_amount = new Label(LabelType.DYNAMIC, "Alpha: 100%");
+		addChild(alpha_amount);
+		
 		alpha_selective = new CheckBox("Selective Alpha", false);
 		addChild(alpha_selective);
 		
@@ -294,6 +298,7 @@ class Main extends Sprite
 					}
 				}
 			}
+			alpha_amount.value = "Alpha: " + alpha_slider.value + "%";
 		}
 		
 		prog_bar = new ProgressBar();
@@ -344,8 +349,11 @@ class Main extends Sprite
 		pal_invert_hue.x = 10;
 		pal_invert_hue.y = bmp_sprite.y + bmp_sprite.height + 20;
 		
+		alpha_amount.x = 10;
+		alpha_amount.y = bmp_sprite.y + bmp_sprite.height + 5;
+		
 		alpha_selective.x = 10;
-		alpha_selective.y = bmp_sprite.y + bmp_sprite.height + 20;
+		alpha_selective.y = alpha_amount.y + 30;
 		
 		alpha_slider.x = 10;
 		alpha_slider.y = alpha_selective.y + 30;
