@@ -254,22 +254,29 @@ class Main extends Sprite
 		export_label = new Label(LabelType.DYNAMIC, "Generate!");
 		addChild(export_label);
 		
+		alpha_selective = new CheckBox("Selective Alpha", false);
+		addChild(alpha_selective);
+		
 		alpha_slider = new HSlider(0, 200, 100, RoundMode.FLOOR);
-		//addChild(alpha_slider);
+		addChild(alpha_slider);
 		alpha_slider.onChange = function(e:MouseEvent) {
+			if (draw_over == null) return;
 			for (a in 0...draw_over.width) {
 				for (b in 0...draw_over.height) {
 					var place = "x" + a + "y" + b;
-					if (((drawover_colors[place] >> 24) & 0xFF) == 0xFF) continue;
+					if (alpha_selective.value && (((drawover_colors[place] >> 24) & 0xFF) == 0xFF || ((drawover_colors[place] >> 24) & 0xFF) == 0x0)) continue;
 					else {
 						var color = drawover_colors[place];
-						var alpha:Float = ((color >> 24) & 0xFF) * (alpha_slider.value / 100);
+						var ratio = alpha_slider.value / 100;
+						var alpha:Float = ((color >> 24) & 0xFF) * ratio;
+						if (alpha > 0xFF) alpha = 0xFF;
 						var color_new = ((Std.int(alpha) & 0xFF) << 24) | (color & 0xFFFFFF);
 						draw_over.setPixel32(a, b, color_new);
 					}
 				}
 			}
 		}
+		
 		prog_bar = new ProgressBar();
 		
 		resize();
