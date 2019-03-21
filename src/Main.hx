@@ -424,15 +424,16 @@ class Main extends Sprite
 	var progress_needed:Int = 0;
 	var progress:Int = 0;
 	var prog_bar:ProgressBar;
+	#if js
+	var zip:ZipWriter;
+	#end
 	function step_export_pre() {
 		if (draw_over == null) return;
-		prog_bar = new ProgressBar();
 		addChild(prog_bar);
-		prog_bar.x = 10;
-		prog_bar.y = 710;
 		removeEventListener(Event.ENTER_FRAME, draw_preview);
 		expx = expy = 0;
 		progress = 0;
+		#if sys
 		outname = file_ref.name.substr(0, 4);
 		FileSystem.createDirectory("output/" + texname.value + "/");
 		if (row_sort.value || col_sort.value) {
@@ -440,6 +441,10 @@ class Main extends Sprite
 				FileSystem.createDirectory("output/" + texname.value + "/" + outname + "/" + a + "/");
 			}
 		}
+		#elseif js
+		outname = texname.value.substr(0, 4);
+		zip = new ZipWriter();
+		#end
 		addEventListener(Event.ENTER_FRAME, step_export);
 	}
 	function step_export(e:Event):Void 
@@ -465,10 +470,20 @@ class Main extends Sprite
 		}
 		
 		//export
+		
 		var bytes:ByteArray = work_bitmapdata.encode(new Rectangle(0, 0, work_bitmapdata.width, work_bitmapdata.height), new PNGEncoderOptions());
+		
+		#if sys
+		
 		var png_out:FileOutput = File.write(pathname);
 		png_out.writeBytes(bytes, 0, bytes.length);
 		png_out.close();
+		
+		#elseif js
+		
+		zip.addBytes(bytes, intToHex[expx] + intToHex[expy] + ".png", true);
+		
+		#end
 		
 		++progress;
 		
@@ -483,6 +498,11 @@ class Main extends Sprite
 				System.openFile('output\\' + texname.value + '\\');
 				#elseif linux
 				System.openFile('output/' + texname.value + '/');
+				#elseif js
+				zip.addBytes(bytes, "entry.png", true);
+				var data = zip.finalize();
+				file_ref = new FileReference();
+				file_ref.save(data, texname.value + ".zip");
 				#end
 				removeChild(prog_bar);
 				removeEventListener(Event.ENTER_FRAME, step_export);
