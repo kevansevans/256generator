@@ -55,36 +55,9 @@ class Main extends Sprite
 	function launch() {
 		palette = Assets.getBitmapData("img/256original.png");
 		
-		bg_sprite = new Sprite();
-		addChild(bg_sprite);
-		
-		bmp_palette = new Bitmap(palette);
-		addChild(bmp_sprite);
-		bmp_sprite.addChild(bmp_palette);
-		bmp_sprite.scaleX = bmp_sprite.scaleY = 10;
-		bmp_sprite.addEventListener(MouseEvent.CLICK, function(e:MouseEvent) {
-			palx = Std.int(bmp_palette.mouseX);
-			paly = Std.int(bmp_palette.mouseY);
-			cycle = false;
-		});
-		
-		addChild(final_sprite);
-		final_sprite.addChild(final_bitmap);
-		final_sprite.scaleX = final_sprite.scaleY = 5;
-		final_sprite.addEventListener(MouseEvent.CLICK, function(e:MouseEvent) {
-			cycle = true;
-		});
-		
-		scale_slider = new HSlider(0.5, 15, 5);
-		addChild(scale_slider);
-		scale_slider.onChange = function() {
-			final_sprite.scaleX = final_sprite.scaleY = scale_slider.value;
-			draw_bg();
-		}
-		
-		this.addEventListener(Event.ENTER_FRAME, draw_preview);
-		
 		make_ux();
+		
+		addEventListener(Event.ENTER_FRAME, draw_preview);
 		
 		Lib.current.stage.addEventListener(Event.RESIZE, resize);
 	}
@@ -116,6 +89,33 @@ class Main extends Sprite
 	var sprite_mode:CheckBox;
 	function make_ux() 
 	{
+		bg_sprite = new Sprite();
+		addChild(bg_sprite);
+		
+		bmp_palette = new Bitmap(palette);
+		addChild(bmp_sprite);
+		bmp_sprite.addChild(bmp_palette);
+		bmp_sprite.scaleX = bmp_sprite.scaleY = 10;
+		bmp_sprite.addEventListener(MouseEvent.CLICK, function(e:MouseEvent) {
+			palx = Std.int(bmp_palette.mouseX);
+			paly = Std.int(bmp_palette.mouseY);
+			cycle = false;
+		});
+		
+		addChild(final_sprite);
+		final_sprite.addChild(final_bitmap);
+		final_sprite.scaleX = final_sprite.scaleY = 5;
+		final_sprite.addEventListener(MouseEvent.CLICK, function(e:MouseEvent) {
+			cycle = true;
+		});
+		
+		scale_slider = new HSlider(0.5, 15, 5);
+		addChild(scale_slider);
+		scale_slider.onChange = function() {
+			final_sprite.scaleX = final_sprite.scaleY = scale_slider.value;
+			draw_bg();
+		}
+		
 		pal_256 = new CheckBox("256 Colors", true);
 		addChild(pal_256);
 		pal_256.onChange = function() {
