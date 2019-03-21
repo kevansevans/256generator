@@ -289,7 +289,7 @@ class Main extends Sprite
 						var ratio = alpha_slider.value / 100;
 						var alpha:Float = ((color >> 24) & 0xFF) * ratio;
 						if (alpha > 0xFF) alpha = 0xFF;
-						var color_new = ((Std.int(alpha) & 0xFF) << 24) | (color & 0xFFFFFF);
+						var color_new = (Std.int(alpha) << 24) | (color & 0xFFFFFF);
 						draw_over.setPixel32(a, b, color_new);
 					}
 				}
