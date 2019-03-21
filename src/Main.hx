@@ -438,8 +438,8 @@ class ProgressBar extends Sprite {
 		graphics.clear();
 		graphics.lineStyle(4, 0x00FF00);
 		graphics.moveTo(0, 0);
-		graphics.lineTo(200 * (1 / ratio), 0);
+		graphics.lineTo((Lib.current.stage.stageWidth - 20) * (1 / ratio), 0);
 		graphics.lineStyle(4, 0xFFFFFF);
-		graphics.lineTo(200, 0);
+		graphics.lineTo((Lib.current.stage.stageWidth - 20), 0);
 	}
 }
