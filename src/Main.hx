@@ -33,15 +33,34 @@ import components.HSlider;
  * source as it's not integral to the program over all. Feel free to ask for help if you need it.
  * 
  */
+enum abstract GamePalette(Int) from Int {
+	var C256:Int;
+	var DOOM:Int;
+	var HERETIC:Int;
+	var HEXEN:Int;
+	var STRIFE:Int;
+	var QUAKE:Int;
+}
 class Main extends Sprite 
 {
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//Important variables
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//Array
 	var drawover_colors:Map<String, Int>;
 	var intToHex:Array<String> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
 	
 	//Bool
 	var cycle:Bool = true;
+	var hue_inverted:Bool = false;
+	var sat_inverted:Bool = false;
+	//these are stupid but necesary
+	var hue_256_inv:Bool = false;
+	var hue_doom_inv:Bool = false;
+	var hue_heretic_inv:Bool = false;
+	var hue_hexen_inv:Bool = false;
+	var hue_strife_inv:Bool = false;
+	var hue_quake_inv:Bool = false;
 	
 	//Bitmap
 	var bg_fill:BitmapData;
@@ -88,6 +107,9 @@ class Main extends Sprite
 	
 	//other
 	var file_ref:FileReference;
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//Entry
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	public function new() 
 	{
 		super();
@@ -108,6 +130,9 @@ class Main extends Sprite
 		
 		Lib.current.stage.addEventListener(Event.RESIZE, resize);
 	}
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//Front end junk
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	function make_ux() 
 	{
 		bg_sprite = new Sprite();
@@ -140,45 +165,49 @@ class Main extends Sprite
 		pal_256 = new CheckBox("256 Colors", true);
 		addChild(pal_256);
 		pal_256.onChange = function() {
+			if (cur_selected == pal_256) return;
 			cur_selected.set(false);
 			pal_256.set(true);
 			cur_selected = pal_256;
 			palette = Assets.getBitmapData("img/256original.png");
 			bmp_palette.bitmapData = palette;
-			invert_pal();
+			invert_hue(GamePalette.C256);
 		}
 		cur_selected = pal_256;
 		
 		pal_doom = new CheckBox("Doom palette", false);
 		addChild(pal_doom);
 		pal_doom.onChange = function() {
+			if (cur_selected == pal_doom) return;
 			cur_selected.set(false);
 			pal_doom.set(true);
 			cur_selected = pal_doom;
 			palette = Assets.getBitmapData("img/doom.png");
-			invert_pal();
+			invert_hue(GamePalette.DOOM);
 			bmp_palette.bitmapData = palette;
 		}
 		
 		pal_heretic = new CheckBox("Heretic palette", false);
 		addChild(pal_heretic);
 		pal_heretic.onChange = function() {
+			if (cur_selected == pal_heretic) return;
 			cur_selected.set(false);
 			pal_heretic.set(true);
 			cur_selected = pal_heretic;
 			palette = Assets.getBitmapData("img/heretic.png");
-			invert_pal();
+			invert_hue(GamePalette.HERETIC);
 			bmp_palette.bitmapData = palette;
 		}
 		
 		pal_hexen = new CheckBox("Hexen palette", false);
 		addChild(pal_hexen);
 		pal_hexen.onChange = function() {
+			if (cur_selected == pal_hexen) return;
 			cur_selected.set(false);
 			pal_hexen.set(true);
 			cur_selected = pal_hexen;
 			palette = Assets.getBitmapData("img/hexen.png");
-			invert_pal();
+			invert_hue(GamePalette.HEXEN);
 			bmp_palette.bitmapData = palette;
 		}
 		
@@ -189,25 +218,27 @@ class Main extends Sprite
 			pal_strife.set(true);
 			cur_selected = pal_strife;
 			palette = Assets.getBitmapData("img/strife.png");
-			invert_pal();
+			invert_hue(GamePalette.STRIFE);
 			bmp_palette.bitmapData = palette;
 		}
 		
 		pal_quake = new CheckBox("Quake palette", false);
 		addChild(pal_quake);
 		pal_quake.onChange = function() {
+			if (cur_selected == pal_quake) return;
 			cur_selected.set(false);
 			pal_quake.set(true);
 			cur_selected = pal_quake;
 			palette = Assets.getBitmapData("img/quake.png");
-			invert_pal();
+			invert_hue(GamePalette.QUAKE);
 			bmp_palette.bitmapData = palette;
 		}
 		
 		pal_invert_hue = new CheckBox("Invert hue", false);
-		//addChild(pal_invert_hue);
+		addChild(pal_invert_hue);
 		pal_invert_hue.onChange = function(e:MouseEvent) {
-			invert_pal(true);
+			hue_inverted = !hue_inverted;
+			invert_hue();
 		}
 		
 		texname = new Label(LabelType.INPUT, "My New Texture Pack");
@@ -215,36 +246,7 @@ class Main extends Sprite
 		
 		drawover_add = new IconButton("add");
 		drawover_add.func_up = function(e:MouseEvent) {
-			#if sys
-				file_ref = new FileReference();
-				file_ref.addEventListener(Event.COMPLETE, load_drawover);
-				file_ref.addEventListener(Event.SELECT, function(e:Event) {
-					file_ref.load();
-				});
-				file_ref.browse([new FileFilter("PNG images", "png")]);
-			#elseif js
-				var input = js.Browser.document.createElement("input");
-				input.style.visibility = "hidden"; //comment this to test
-				input.setAttribute("type", "file");
-				input.id = "browse";
-				input.onclick = function(e) {
-					e.cancelBubble = true;
-					e.stopPropagation();
-				}
-				input.onchange = function() {
-					untyped var file = input.files[0];
-					var reader = new js.html.FileReader();
-					reader.onload = function(evt) {
-						var buffer:ArrayBuffer = cast(evt.target.result, ArrayBuffer);
-						var array:ByteArray = ByteArray.fromArrayBuffer(buffer);
-						js_load(array);
-						js.Browser.document.body.removeChild(input);
-					}
-					reader.readAsArrayBuffer(file);
-				}
-				js.Browser.document.body.appendChild(input);
-				input.click();
-			#end
+			call_load_asset();
 		}
 		addChild(drawover_add);
 		
@@ -297,6 +299,45 @@ class Main extends Sprite
 		
 		resize();
 		draw_bg();
+	}
+	function call_load_asset() 
+	{
+		#if sys
+				file_ref = new FileReference();
+				file_ref.addEventListener(Event.COMPLETE, load_drawover);
+				file_ref.addEventListener(Event.SELECT, function(e:Event) {
+					file_ref.load();
+				});
+				file_ref.browse([new FileFilter("PNG images", "png")]);
+			#elseif js
+				var input = js.Browser.document.createElement("input");
+				input.style.visibility = "hidden"; //comment this to test
+				input.setAttribute("type", "file");
+				input.id = "browse";
+				input.onclick = function(e) {
+					e.cancelBubble = true;
+					e.stopPropagation();
+				}
+				input.onchange = function() {
+					untyped var file = input.files[0];
+					var reader = new js.html.FileReader();
+					reader.onload = function(evt) {
+						var buffer:ArrayBuffer = cast(evt.target.result, ArrayBuffer);
+						var array:ByteArray = ByteArray.fromArrayBuffer(buffer);
+						js_load(array);
+						js.Browser.document.body.removeChild(input);
+					}
+					reader.readAsArrayBuffer(file);
+				}
+				js.Browser.document.body.appendChild(input);
+				input.click();
+			#end
+	}
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//Back end junk
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	function update_preview() {
+		update_drawover_alpha();
 	}
 	function update_drawover_alpha() {
 		if (draw_over == null) return;
@@ -360,7 +401,7 @@ class Main extends Sprite
 		pal_invert_hue.y = bmp_sprite.y + bmp_sprite.height + 20;
 		
 		alpha_amount.x = 10;
-		alpha_amount.y = bmp_sprite.y + bmp_sprite.height + 5;
+		alpha_amount.y = pal_invert_hue.y + pal_invert_hue.height + 5;
 		
 		alpha_selective.x = 10;
 		alpha_selective.y = alpha_amount.y + 30;
@@ -400,8 +441,47 @@ class Main extends Sprite
 		bg_sprite.graphics.lineTo(final_sprite.width, 0);
 		bg_sprite.graphics.lineTo(0, 0);
 	}
-	function invert_pal(_ignore:Bool = false) {
-		if (!pal_invert_hue.value && !_ignore) return;
+	function invert_hue(?_pal:GamePalette) {
+		//"What the fuck" - Duke Nukem
+		switch (_pal) {
+			case GamePalette.C256 :
+				if (hue_inverted == hue_256_inv) return;
+				else hue_256_inv = hue_inverted;
+			case GamePalette.DOOM :
+				if (hue_inverted == hue_doom_inv) return;
+				else hue_doom_inv = hue_inverted;
+			case GamePalette.HERETIC :
+				if (hue_inverted == hue_heretic_inv) return;
+				else hue_heretic_inv = hue_inverted;
+			case GamePalette.HEXEN :
+				if (hue_inverted == hue_hexen_inv) return;
+				else hue_hexen_inv = hue_inverted;
+			case GamePalette.STRIFE :
+				if (hue_inverted == hue_strife_inv) return;
+				else hue_strife_inv = hue_inverted;
+			case GamePalette.QUAKE :
+				if (hue_inverted == hue_quake_inv) return;
+				else hue_quake_inv = hue_inverted;
+			default :
+				if (cur_selected == pal_256) {
+					hue_256_inv = hue_inverted;
+				}
+				if (cur_selected == pal_doom) {
+					hue_doom_inv = hue_inverted;
+				}
+				if (cur_selected == pal_heretic) {
+					hue_heretic_inv = hue_inverted;
+				}
+				if (cur_selected == pal_hexen) {
+					hue_hexen_inv = hue_inverted;
+				}
+				if (cur_selected == pal_strife) {
+					hue_strife_inv = hue_inverted;
+				}
+				if (cur_selected == pal_quake) {
+					hue_quake_inv = hue_inverted;
+				}
+		}
 		for (a in 0...16) {
 			for (b in 0...16) {
 				var rgb = palette.getPixel(a, b);
@@ -441,6 +521,7 @@ class Main extends Sprite
 				drawover_colors[place] = draw_over.getPixel32(a, b);
 			}
 		}
+		update_preview();
 	}
 	var palx:Int = 0;
 	var paly:Int = 0;
