@@ -94,7 +94,8 @@ class Main extends Sprite
 	var pal_hexen:CheckBox;
 	var pal_strife:CheckBox;
 	var pal_quake:CheckBox;
-	var pal_invert:CheckBox;
+	var pal_invert_hue:CheckBox;
+	var pal_invert_sat:CheckBox;
 	var cur_selected:CheckBox;
 	
 	var texname:Label;
@@ -182,9 +183,9 @@ class Main extends Sprite
 			bmp_palette.bitmapData = palette;
 		}
 		
-		pal_invert = new CheckBox("Invert palette", false);
-		//addChild(pal_invert);
-		pal_invert.onChange = function(e:MouseEvent) {
+		pal_invert_hue = new CheckBox("Invert hue", false);
+		//addChild(pal_invert_hue);
+		pal_invert_hue.onChange = function(e:MouseEvent) {
 			invert_pal(true);
 		}
 		
