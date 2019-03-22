@@ -308,14 +308,14 @@ class Main extends Sprite
 		
 		saturation_label = new Label();
 		saturation_label.value = "Saturation: 100%";
-		addChild(saturation_label);
+		//addChild(saturation_label);
 		
 		saturation_slider = new HSlider(0, 200, 100);
 		saturation_slider.onChange = function(e:MouseEvent) {
 			update_drawover_saturation();
 			update_drawover_alpha();
 		}
-		addChild(saturation_slider);
+		//addChild(saturation_slider);
 		
 		prog_bar = new ProgressBar();
 		
