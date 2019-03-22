@@ -20,7 +20,13 @@ class PixelColor
 	public var green(get, set):Int;
 	public var blue(get, set):Int;
 	
+	public var originalAlpha(get, never):Int;
+	public var originalRed(get, never):Int;
+	public var originalBlue(get, never):Int;
+	public var originalGreen(get, never):Int;
+	
 	public var alphaMultiplier:Float = 1;
+	public var saturationMultiplier:Float = 1;
 	public var redMultiplier:Float = 1;
 	public var greenMultiplier:Float = 1;
 	public var blueMultiplier:Float = 1;
@@ -60,6 +66,19 @@ class PixelColor
 	}
 	public function getColorRGB():Int {
 		return red << 16 | green << 8 | blue;
+	}
+	
+	function get_originalAlpha():Int {
+		return argb >> 24;
+	}
+	function get_originalRed():Int {
+		return (argb >> 16) & 0xFF;
+	}
+	function get_originalGreen():Int {
+		return (argb >> 8) & 0xFF;
+	}
+	function get_originalBlue():Int {
+		return argb & 0xFF;
 	}
 	
 	function get_alpha():Int {
