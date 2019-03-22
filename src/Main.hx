@@ -47,6 +47,7 @@ class Main extends Sprite
 	//Important variables
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//Array
+	var palette_colors:Map<String, PixelColor>;
 	var drawover_colors:Map<String, Int>;
 	var workbmp_colors:Map<String, Int>;
 	var intToHex:Array<String> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
@@ -133,6 +134,8 @@ class Main extends Sprite
 		bg_fill = Assets.getBitmapData("embed/bg_fill.png");
 		palette = Assets.getBitmapData("img/256original.png");
 		
+		set_palette_colors();
+		
 		make_ux();
 		
 		addEventListener(Event.ENTER_FRAME, draw_preview);
@@ -176,11 +179,12 @@ class Main extends Sprite
 		pal_256 = new CheckBox("256 Colors", true);
 		addChild(pal_256);
 		pal_256.onChange = function() {
-			if (cur_selected == pal_256) return;
 			cur_selected.set(false);
 			pal_256.set(true);
+			if (cur_selected == pal_256) return;
 			cur_selected = pal_256;
 			palette = Assets.getBitmapData("img/256original.png");
+			set_palette_colors();
 			bmp_palette.bitmapData = palette;
 			invert_hue(GamePalette.C256);
 		}
@@ -189,11 +193,12 @@ class Main extends Sprite
 		pal_doom = new CheckBox("Doom palette", false);
 		addChild(pal_doom);
 		pal_doom.onChange = function() {
-			if (cur_selected == pal_doom) return;
 			cur_selected.set(false);
 			pal_doom.set(true);
+			if (cur_selected == pal_doom) return;
 			cur_selected = pal_doom;
 			palette = Assets.getBitmapData("img/doom.png");
+			set_palette_colors();
 			invert_hue(GamePalette.DOOM);
 			bmp_palette.bitmapData = palette;
 		}
@@ -201,11 +206,12 @@ class Main extends Sprite
 		pal_heretic = new CheckBox("Heretic palette", false);
 		addChild(pal_heretic);
 		pal_heretic.onChange = function() {
-			if (cur_selected == pal_heretic) return;
 			cur_selected.set(false);
 			pal_heretic.set(true);
+			if (cur_selected == pal_heretic) return;
 			cur_selected = pal_heretic;
 			palette = Assets.getBitmapData("img/heretic.png");
+			set_palette_colors();
 			invert_hue(GamePalette.HERETIC);
 			bmp_palette.bitmapData = palette;
 		}
@@ -213,11 +219,12 @@ class Main extends Sprite
 		pal_hexen = new CheckBox("Hexen palette", false);
 		addChild(pal_hexen);
 		pal_hexen.onChange = function() {
-			if (cur_selected == pal_hexen) return;
 			cur_selected.set(false);
 			pal_hexen.set(true);
+			if (cur_selected == pal_hexen) return;
 			cur_selected = pal_hexen;
 			palette = Assets.getBitmapData("img/hexen.png");
+			set_palette_colors();
 			invert_hue(GamePalette.HEXEN);
 			bmp_palette.bitmapData = palette;
 		}
@@ -227,8 +234,10 @@ class Main extends Sprite
 		pal_strife.onChange = function() {
 			cur_selected.set(false);
 			pal_strife.set(true);
+			if (cur_selected == pal_strife) return;
 			cur_selected = pal_strife;
 			palette = Assets.getBitmapData("img/strife.png");
+			set_palette_colors();
 			invert_hue(GamePalette.STRIFE);
 			bmp_palette.bitmapData = palette;
 		}
@@ -236,11 +245,12 @@ class Main extends Sprite
 		pal_quake = new CheckBox("Quake palette", false);
 		addChild(pal_quake);
 		pal_quake.onChange = function() {
-			if (cur_selected == pal_quake) return;
 			cur_selected.set(false);
 			pal_quake.set(true);
+			if (cur_selected == pal_quake) return;
 			cur_selected = pal_quake;
 			palette = Assets.getBitmapData("img/quake.png");
+			set_palette_colors();
 			invert_hue(GamePalette.QUAKE);
 			bmp_palette.bitmapData = palette;
 		}
@@ -358,44 +368,20 @@ class Main extends Sprite
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//Back end junk
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	function update_preview() {
-		update_drawover_alpha();
-	}
-	function update_drawover_alpha() {
-		if (draw_over == null) return;
-			for (a in 0...draw_over.width) {
-				for (b in 0...draw_over.height) {
-					var place = "x" + a + "y" + b;
-					if (alpha_selective.value && (((drawover_colors[place] >> 24) & 0xFF) == 0xFF || ((drawover_colors[place] >> 24) & 0xFF) == 0x0)) continue;
-					else {
-						var color = drawover_colors[place];
-						var ratio = alpha_slider.value / 100;
-						var alpha:Float = ((color >> 24) & 0xFF) * ratio;
-						if (alpha > capalpha_slider.value) alpha = capalpha_slider.value;
-						var color_new = (Std.int(alpha) << 24) | (color & 0xFFFFFF);
-						draw_over.setPixel32(a, b, color_new);
-					}
-				}
+	function set_palette_colors() {
+		palette_colors = new Map();
+		for (a in 0...16) {
+			for (b in 0...16) {
+				var place = "x" + a + "y" + b;
+				palette_colors[place] = new PixelColor(palette.getPixel32(a, b));
 			}
-			alpha_amount.value = "Alpha: " + alpha_slider.value + "% Cap: " + capalpha_slider.value;
+		}
 	}
-	function update_drawover_saturation() {
-		saturation_label.value = "Saturation: " + saturation_slider.value + "%";
-		for (c in 0...draw_over.width) {
-			for (d in 0...draw_over.height) {
-				var place:String = "x" + c + "y" + d;
-				if (alpha_selective.value && (((drawover_colors[place] >> 24) & 0xFF) == 0xFF || ((drawover_colors[place] >> 24) & 0xFF) == 0x0)) continue;
-				var ratio = saturation_slider.value / 100;
-				var ARGB = drawover_colors[place];
-				var alpha = ARGB & 0xFF000000;
-				var red:Float = (ARGB >> 16) & 0xFF;
-				var grn:Float = (ARGB >> 8) & 0xFF;
-				var blu:Float = ARGB & 0xFF;
-				red = Math.min(red * ratio, 0xFF);
-				grn = Math.min(grn * ratio, 0xFF);
-				blu = Math.min(blu * ratio, 0xFF);
-				var color = Std.int(red) << 16 | Std.int(grn) << 8 | Std.int(blu);
-				draw_over.setPixel(c, d, color);
+	function update_palette_colors() {
+		for (a in 0...16) {
+			for (b in 0...16) {
+				var place = "x" + a + "y" + b;
+				palette.setPixel32(a, b, palette_colors[place].getColorARGB());
 			}
 		}
 	}
@@ -530,20 +516,10 @@ class Main extends Sprite
 					hue_quake_inv = hue_inverted;
 				}
 		}
-		for (a in 0...16) {
-			for (b in 0...16) {
-				var rgb = palette.getPixel(a, b);
-				var red = rgb >> 16;
-				var grn = (rgb >> 8) & 0xFF;
-				var blu = rgb & 0xFF;
-				var c = Std.int(((Math.max(red, Math.max(grn, blu)) + Math.min(red, Math.min(grn, blu)))));
-				var new_red = c - red;
-				var new_grn = c - grn;
-				var new_blu = c - blu;
-				var color = new_red << 16 | new_grn << 8 | new_blu;
-				palette.setPixel(a, b, color);
-			}
+		for (a in palette_colors) {
+			a.invertHue();
 		}
+		update_palette_colors();
 		bmp_palette.bitmapData = palette;
 	}
 	function invert_luminance(?_pal:GamePalette) {
