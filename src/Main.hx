@@ -33,13 +33,13 @@ import components.HSlider;
  * source as it's not integral to the program over all. Feel free to ask for help if you need it.
  * 
  */
-enum abstract GamePalette(Int) from Int {
-	var C256:Int;
-	var DOOM:Int;
-	var HERETIC:Int;
-	var HEXEN:Int;
-	var STRIFE:Int;
-	var QUAKE:Int;
+enum GamePalette {
+	C256;
+	DOOM;
+	HERETIC;
+	HEXEN;
+	STRIFE;
+	QUAKE;
 }
 class Main extends Sprite 
 {
