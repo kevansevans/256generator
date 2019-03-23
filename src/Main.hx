@@ -385,6 +385,24 @@ class Main extends Sprite
 			}
 		}
 	}
+	function update_drawover_alpha() {
+		
+		if (draw_over == null) return;
+		
+		for (a in 0...draw_over.width) {
+			for (b in 0...draw_over.height) {
+				var place = "x" + a + "y" + b;
+				if ((drawover_colors[place].originalAlpha == 0xFF || drawover_colors[place].originalAlpha == 0x0) && alpha_selective.value) {
+					continue;
+				}
+				else {
+					drawover_colors[place].alphaMultiplier = alpha_slider.value / 100;
+					draw_over.setPixel32(a, b, drawover_colors[place].getColorARGB());
+				}
+			}
+		}
+		alpha_amount.value = "Alpha: " + alpha_slider.value + "% Cap: " + capalpha_slider.value;
+	}
 	function resize(?e:Event) {
 		bmp_sprite.x = 10;
 		bmp_sprite.y = 10;
