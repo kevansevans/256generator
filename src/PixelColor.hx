@@ -84,22 +84,26 @@ class PixelColor
 	function get_alpha():Int {
 		var value:Float = _a;
 		value *= alphaMultiplier;
-		return Std.int(value);
+		value *= saturationMultiplier;
+		return Std.int(Math.min(value, 255));
 	}
 	function get_red():Int {
 		var value:Float = _r;
 		value *= redMultiplier;
-		return Std.int(value);
+		value *= saturationMultiplier;
+		return Std.int(Math.min(value, 255));
 	}
 	function get_green():Int {
 		var value:Float = _g;
 		value *= greenMultiplier;
-		return Std.int(value);
+		value *= saturationMultiplier;
+		return Std.int(Math.min(value, 255));
 	}
 	function get_blue():Int {
 		var value:Float = _b;
 		value *= blueMultiplier;
-		return Std.int(value);
+		value *= saturationMultiplier;
+		return Std.int(Math.min(value, 255));
 	}
 	
 	function set_alpha(_v:Int):Int {
