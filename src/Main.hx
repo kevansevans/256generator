@@ -48,7 +48,7 @@ class Main extends Sprite
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//Array
 	var palette_colors:Map<String, PixelColor>;
-	var drawover_colors:Map<String, Int>;
+	var drawover_colors:Map<String, PixelColor>;
 	var workbmp_colors:Map<String, Int>;
 	var intToHex:Array<String> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
 	
@@ -583,10 +583,9 @@ class Main extends Sprite
 		for (a in 0...draw_over.width) {
 			for (b in 0...draw_over.height) {
 				var place = "x" + a + "y" + b;
-				drawover_colors[place] = draw_over.getPixel32(a, b);
+				drawover_colors[place] = new PixelColor(draw_over.getPixel32(a, b));
 			}
 		}
-		update_preview();
 	}
 	var palx:Int = 0;
 	var paly:Int = 0;
