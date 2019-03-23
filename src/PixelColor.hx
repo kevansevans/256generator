@@ -35,7 +35,7 @@ class PixelColor
 	{
 		argb = _argb;
 		
-		_a = _argb >> 24;
+		_a = (_argb >> 24) & 0xFF;
 		_r = (_argb >> 16) & 0xFF;
 		_g = (_argb >> 8) & 0xFF;
 		_b = _argb & 0xFF;
