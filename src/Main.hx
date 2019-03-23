@@ -610,7 +610,7 @@ class Main extends Sprite
 				for (c in 0...work_bitmapdata.width) {
 					for (d in 0...work_bitmapdata.height) {
 						var place:String = "x" + c + "y" + d;
-						if ((drawover_colors[place] >> 24) & 0xFF != 0) continue;
+						if (drawover_colors[place].originalAlpha != 0) continue;
 						else work_bitmapdata.setPixel32(c, d, 0x00000000);
 					}
 				}
@@ -688,7 +688,7 @@ class Main extends Sprite
 			for (c in 0...work_bitmapdata.width) {
 				for (d in 0...work_bitmapdata.height) {
 					var place:String = "x" + c + "y" + d;
-					if ((drawover_colors[place] >> 24) & 0xFF != 0) continue;
+					if (drawover_colors[place].originalAlpha != 0) continue;
 					else work_bitmapdata.setPixel32(c, d, 0x00000000);
 				}
 			}
