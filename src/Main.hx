@@ -604,6 +604,9 @@ class Main extends Sprite
 				drawover_colors[place] = new PixelColor(draw_over.getPixel32(a, b));
 			}
 		}
+		
+		var color = palette.getPixel(palx, paly);
+		work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, ((0xFF << 24) | color));
 	}
 	var palx:Int = 0;
 	var paly:Int = 0;
@@ -622,7 +625,7 @@ class Main extends Sprite
 		}
 		var color = palette.getPixel(palx, paly);
 		if (draw_over != null) {
-			work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
+			work_bitmapdata.draw(new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color));
 			work_bitmapdata.draw(draw_over);
 			if (sprite_mode.value) {
 				for (c in 0...work_bitmapdata.width) {
@@ -697,7 +700,7 @@ class Main extends Sprite
 		if (row_sort.value) subpath = "/" + intToHex[expy] + "/";
 		else if (col_sort.value) subpath = "/" + intToHex[expx] + "/";
 		var pathname = "output/" + texname.value + "/" + outname + subpath + intToHex[expx] + intToHex[expy] + ".png";
-		work_bitmapdata = new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color);
+		work_bitmapdata.draw(new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color));
 		work_bitmapdata.draw(draw_over);
 		progress_needed = 256;
 		
