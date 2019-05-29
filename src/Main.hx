@@ -331,6 +331,9 @@ class Main extends Sprite
 		
 		resize();
 		draw_bg();
+		
+		draw_over = Assets.getBitmapData("embed/dummy.png");
+		load_drawover();
 	}
 	function call_load_asset() 
 	{
@@ -681,7 +684,7 @@ class Main extends Sprite
 		progress = 0;
 		#if sys
 		var preName = StringTools.replace(texname.value, " ", "");
-		outname = preName + "-" + file_ref.name.substr(0, 6);
+		outname = preName + "-" + (file_ref == null ? "dummy" : file_ref.name.substr(0, 6));
 		FileSystem.createDirectory("output/" + texname.value + "/");
 		if (row_sort.value || col_sort.value) {
 			for (a in intToHex) {
