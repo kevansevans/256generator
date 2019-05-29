@@ -599,6 +599,7 @@ class Main extends Sprite
 		if (e != null) {
 			draw_over = BitmapData.fromBytes(file_ref.data);
 			drawover_label.set(file_ref.name);
+			if (texname.value == "My New Texture Pack") texname.value = StringTools.replace(file_ref.name, ".png", "");
 		}
 		drawover_colors = new Map();
 		for (a in 0...draw_over.width) {
