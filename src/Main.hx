@@ -1,5 +1,6 @@
 package;
 
+import components.WindowBox;
 import lime.system.System;
 import openfl.Lib;
 import openfl.display.Bitmap;
@@ -674,29 +675,50 @@ class Main extends Sprite
 	var progress_needed:Int = 0;
 	var progress:Int = 0;
 	var prog_bar:ProgressBar;
+	var dirMenu:WindowBox;
 	#if js
 	var zip:ZipWriter;
 	#end
 	function step_export_pre() {
 		if (draw_over == null) return;
-		addChild(prog_bar);
 		removeEventListener(Event.ENTER_FRAME, draw_preview);
 		expx = expy = 0;
 		progress = 0;
 		#if sys
 		var preName = StringTools.replace(texname.value, " ", "");
 		outname = preName + "-" + (file_ref == null ? "dummy" : file_ref.name.substr(0, 6));
+		if (FileSystem.exists("output/" + texname.value + "/") && FileSystem.readDirectory("output/" + texname.value + "/").length > 0) {
+			dirMenu = new WindowBox("Caution!", WindowMode.CONFIRM);
+			dirMenu.set_message_string("There appears to be a directory here containing assets that have already been exported. \n\n" + outname + "\n\nNew assets will mix in with any existing files, and files will be lost if they coincidentally share names. Do you wish to continue?", true);
+			addChild(dirMenu);
+			dirMenu.x = (stage.stageWidth / 2) - (dirMenu.width / 2);
+			dirMenu.y = (stage.stageHeight / 2) - (dirMenu.height / 2);
+			dirMenu.negative.func_up = function(e:MouseEvent) {
+				removeChild(dirMenu);
+			}
+			dirMenu.positive.func_up = function(e:MouseEvent) {
+				addChild(prog_bar);
+				make_export_dir();
+				addEventListener(Event.ENTER_FRAME, step_export);
+				removeChild(dirMenu);
+			}
+		} else {
+			addChild(prog_bar);
+			make_export_dir();
+			addEventListener(Event.ENTER_FRAME, step_export);
+		}
+		#elseif js
+		outname = texname.value.substr(0, 4);
+		zip = new ZipWriter();
+		#end
+	}
+	function make_export_dir() {
 		FileSystem.createDirectory("output/" + texname.value + "/");
 		if (row_sort.value || col_sort.value) {
 			for (a in intToHex) {
 				FileSystem.createDirectory("output/" + texname.value  + "/" + a + "/");
 			}
 		}
-		#elseif js
-		outname = texname.value.substr(0, 4);
-		zip = new ZipWriter();
-		#end
-		addEventListener(Event.ENTER_FRAME, step_export);
 	}
 	function step_export(e:Event):Void 
 	{
