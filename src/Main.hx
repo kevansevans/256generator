@@ -680,11 +680,12 @@ class Main extends Sprite
 		expx = expy = 0;
 		progress = 0;
 		#if sys
-		outname = file_ref.name.substr(0, 4);
+		var preName = StringTools.replace(texname.value, " ", "");
+		outname = preName + "-" + file_ref.name.substr(0, 6);
 		FileSystem.createDirectory("output/" + texname.value + "/");
 		if (row_sort.value || col_sort.value) {
 			for (a in intToHex) {
-				FileSystem.createDirectory("output/" + texname.value + "/" + outname + "/" + a + "/");
+				FileSystem.createDirectory("output/" + texname.value  + "/" + a + "/");
 			}
 		}
 		#elseif js
@@ -699,7 +700,7 @@ class Main extends Sprite
 		var color = palette.getPixel(expx, expy);
 		if (row_sort.value) subpath = "/" + intToHex[expy] + "/";
 		else if (col_sort.value) subpath = "/" + intToHex[expx] + "/";
-		var pathname = "output/" + texname.value + "/" + outname + subpath + intToHex[expx] + intToHex[expy] + ".png";
+		var pathname = "output/" + texname.value + "/" + subpath + outname + intToHex[expx] + intToHex[expy] + ".png";
 		work_bitmapdata.draw(new BitmapData(draw_over.width, draw_over.height, true, (0xFF << 24) | color));
 		work_bitmapdata.draw(draw_over);
 		progress_needed = 256;
