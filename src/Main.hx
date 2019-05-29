@@ -274,7 +274,7 @@ class Main extends Sprite
 		drawover_label = new Label(LabelType.DYNAMIC, "Add overlay texture");
 		addChild(drawover_label);
 		
-		row_sort = new CheckBox("Sort by row", false);
+		row_sort = new CheckBox("Sort by row", true);
 		row_sort.onChange = function(e:MouseEvent) {
 			if (col_sort.value) col_sort.set(false);
 		}
