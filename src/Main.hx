@@ -1,6 +1,5 @@
 package;
 
-import haxe.ui.components.Button;
 import sys.FileSystem;
 import sys.io.File;
 import openfl.display.Bitmap;
@@ -19,6 +18,12 @@ import haxe.ui.Toolkit;
 import haxe.ui.components.OptionBox;
 import haxe.ui.containers.TabView;
 import haxe.ui.containers.ScrollView;
+import haxe.ui.containers.Box;
+import haxe.ui.containers.HBox;
+import haxe.ui.containers.VBox;
+import haxe.ui.components.Button;
+import haxe.ui.containers.dialogs.Dialog;
+import haxe.ui.containers.dialogs.MessageBox;
 import haxe.ui.util.Color;
 import haxe.ui.events.UIEvent;
 import haxe.ui.components.CheckBox;
@@ -30,6 +35,7 @@ import haxe.ui.components.Progress;
 import haxe.ui.components.HorizontalSlider;
 import haxe.ui.components.TextField;
 import haxe.ui.data.ArrayDataSource;
+import haxe.ui.layouts.AbsoluteLayout;
 
 import ext.PixelColor;
 import ext.WorkBitmap;
@@ -109,44 +115,123 @@ class Main extends Sprite
 		resize_ui();
 	}
 	
+	var box_palprop:HBox;
+	var box_palview:Box;
 	var pal_dropdown:DropDown;
 	var pal_contextbutton:Button;
+	var pal_savemono:Button;
+	var pal_monoedit:MessageBox;
+	var mono_a:Int = 0xFFFFFF;
+	var mono_b:Int = 0;
 	function palette_tab() {
 		palette_box = new ScrollView();
 		palette_box.text = "Palette";
 		main_tab.addComponent(palette_box);
 		
+		box_palprop = new HBox();
+		box_palprop.width = 270;
+		box_palprop.height = 30;
+		palette_box.addComponent(box_palprop);
+		
 		pal_dropdown = new DropDown();
 		pal_dropdown.dataSource = pal_datasource;
-		palette_box.addComponent(pal_dropdown);
+		box_palprop.addComponent(pal_dropdown);
 		pal_dropdown.selectedIndex = 0;
-		pal_dropdown.text = "Palette";
+		pal_dropdown.text = "265 Colors";
 		pal_dropdown.width = 150;
 		pal_dropdown.dropdownHeight = 200;
 		pal_dropdown.onChange = function(e:UIEvent) {
 			if (pal_dropdown.selectedIndex == random_index) {
-				palette_box.removeChild(main_palette);
-				var temp_bitmap:WorkBitmap = new WorkBitmap(random_palette(), 16, 16);
-				main_palette = temp_bitmap;
-				palette_box.addChild(main_palette);
+				createRandomPal();
+				pal_contextbutton.visible = true;
+				pal_contextbutton.text = "Randomize";
+				pal_contextbutton.width = 150;
+				pal_contextbutton.onClick = function(e:UIEvent) {
+					createRandomPal();
+					resize_ui();
+				};
 			} else if (pal_dropdown.selectedIndex == monofade_index) {
-				//monofade bitmap here
+				createMonofadePal(mono_a, mono_b);
+				pal_contextbutton.visible = true;
+				pal_contextbutton.text = "Edit";
+				pal_contextbutton.width = 75;
+				pal_contextbutton.onClick = function(e:UIEvent) {
+					popup_monofade();
+				};
 			} else {
-				//update_mainPalette(pal_dropdown.selectedIndex);
+				update_mainPalette(pal_dropdown.selectedIndex);
+				pal_contextbutton.visible = false;
 			}
 			resize_ui();
 		}
 		
 		pal_contextbutton = new Button();
-		palette_box.addComponent(pal_contextbutton);
-		pal_contextbutton.text = "Context";
-		pal_contextbutton.y = 0;
-		pal_contextbutton.x = 160;
+		box_palprop.addComponent(pal_contextbutton);
+		pal_contextbutton.text = "I shouldn't be visible now";
+		pal_contextbutton.width = 150;
+		pal_contextbutton.visible = false;
 		
-		//palette_box.addChild(main_palette);
-		main_palette.x = 7;
-		main_palette.y = 40;
+		box_palview = new Box();
+		palette_box.addComponent(box_palview);
+		box_palview.width = box_palview.height = 275;
+		
+		box_palview.addChild(main_palette);
 		main_palette.width = main_palette.height = 275;
+	}
+	function popup_monofade() {
+		pal_monoedit = new MessageBox();
+		pal_monoedit.message = "Please input two RGB hex colors:";
+		pal_monoedit.height = 160;
+		pal_monoedit.closable = false;
+		pal_monoedit.x = 320;
+		pal_monoedit.y = 10;
+		addChild(pal_monoedit);
+		
+		var colorbox:VBox = new VBox();
+		var color_a:TextField = new TextField();
+		var color_b:TextField = new TextField();
+		pal_monoedit.addComponent(colorbox);
+		color_a.text = StringTools.hex(mono_a, 6);
+		color_b.text = StringTools.hex(mono_b, 6);
+		colorbox.addComponent(color_a);
+		colorbox.addComponent(color_b);
+		
+		var optionbox:HBox = new HBox();
+		var save:Button = new Button();
+		var quit:Button = new Button();
+		pal_monoedit.addComponent(optionbox);
+		save.text = "Save palette";
+		quit.text = "Close";
+		//optionbox.addComponent(save);
+		optionbox.addComponent(quit);
+		
+		color_a.onChange = color_b.onChange = function(e:UIEvent) {
+			var cola = Std.parseInt("0x" + color_a.text);
+			var colb = Std.parseInt("0x" + color_b.text);
+			if (cola == null || colb == null) return;
+			createMonofadePal(cola, colb);
+			mono_a = cola;
+			mono_b = colb;
+		}
+		
+		quit.onClick = function(e:UIEvent) {
+			removeChild(pal_monoedit);
+		}
+	}
+	function createMonofadePal(_colA:Int = 0xFFFFFF, _colB:Int = 0) 
+	{
+		box_palview.removeChild(main_palette);
+		var temp_bitmap:WorkBitmap = new WorkBitmap(monofade_palette(_colA, _colB), 16, 16);
+		main_palette = temp_bitmap;
+		box_palview.addChild(main_palette);
+		resize_ui();
+	}
+	function createRandomPal() 
+	{
+		box_palview.removeChild(main_palette);
+		var temp_bitmap:WorkBitmap = new WorkBitmap(random_palette(), 16, 16);
+		main_palette = temp_bitmap;
+		box_palview.addChild(main_palette);
 	}
 	
 	var ov_alphamin_label:Label;
@@ -198,15 +283,13 @@ class Main extends Sprite
 		export_box.width = main_tab.width - 10;
 		export_box.height = main_tab.height - 40;
 		
-		main_palette.x = 7;
-		main_palette.y = 40;
 		main_palette.width = main_palette.height = 275;
 	}
 	inline public function update_mainPalette(_pal:Int = 0) {
-		palette_box.removeChild(main_palette);
+		box_palview.removeChild(main_palette);
 		if (!hue_negative) main_palette = pal[_pal];
 		else if (hue_negative) main_palette = pal_neg[_pal];
-		palette_box.addChild(main_palette);
+		box_palview.addChild(main_palette);
 	}
 	function update_workBitmap() {
 		
@@ -219,6 +302,37 @@ class Main extends Sprite
 			}
 		}
 		return r_palette;
+	}
+	function monofade_palette(_colA:Int, _colB:Int):BitmapData {
+		var r_range = (_colB >> 16) - (_colA >> 16);
+		var g_range = ((_colB >> 8) & 0xFF) - ((_colA >> 8) & 0xFF);
+		var b_range = (_colB & 0xFF) - (_colA & 0xFF);
+		
+		var r_step:Float = r_range == 0 ? 0 : r_range / 255;
+		var g_step:Float = g_range == 0 ? 0 : g_range / 255;
+		var b_step:Float = b_range == 0 ? 0 : b_range / 255;
+		
+		var r_value:Float = _colA >> 16;
+		var g_value:Float = (_colA >> 8) & 0xFF;
+		var b_value:Float = _colA & 0xFF;
+		
+		var bitmap:BitmapData = new BitmapData(16, 16, false, 0);
+		
+		for (h in 0...16) {
+			for (w in 0...16) {
+				if (h == 0 && w == 0) bitmap.setPixel(w, h, _colA);
+				else if (h == 15 && w == 15) bitmap.setPixel(w, h, _colB);
+				else {
+					r_value += r_step;
+					g_value += g_step;
+					b_value += b_step;
+					var color = Std.int(r_value) << 16 | Std.int(g_value) << 8 | Std.int(b_value);
+					bitmap.setPixel(w, h, color);
+				}
+			}
+		}
+		
+		return bitmap;
 	}
 	//Get palettes from assets
 	static function getPalAndColorLists()
