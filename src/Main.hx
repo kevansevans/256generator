@@ -145,7 +145,6 @@ class Main extends Sprite
 				createRandomPal();
 				pal_contextbutton.visible = true;
 				pal_contextbutton.text = "Randomize";
-				pal_contextbutton.width = 150;
 				pal_contextbutton.onClick = function(e:UIEvent) {
 					createRandomPal();
 					resize_ui();
@@ -154,7 +153,6 @@ class Main extends Sprite
 				createMonofadePal(mono_a, mono_b);
 				pal_contextbutton.visible = true;
 				pal_contextbutton.text = "Edit";
-				pal_contextbutton.width = 75;
 				pal_contextbutton.onClick = function(e:UIEvent) {
 					popup_monofade();
 				};
@@ -168,7 +166,7 @@ class Main extends Sprite
 		pal_contextbutton = new Button();
 		box_palprop.addComponent(pal_contextbutton);
 		pal_contextbutton.text = "I shouldn't be visible now";
-		pal_contextbutton.width = 150;
+		pal_contextbutton.width = 75;
 		pal_contextbutton.visible = false;
 		
 		box_palview = new Box();
@@ -180,7 +178,7 @@ class Main extends Sprite
 	}
 	function popup_monofade() {
 		pal_monoedit = new MessageBox();
-		pal_monoedit.message = "Please input two RGB hex colors:";
+		pal_monoedit.title = "Please input two RGB hex colors:";
 		pal_monoedit.height = 160;
 		pal_monoedit.closable = false;
 		pal_monoedit.x = 320;
