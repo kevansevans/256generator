@@ -56,7 +56,7 @@ class Main extends Sprite
 	static var hex:Array<Map<String, PixelColor>>;
 	static var hex_neg:Array<Map<String, PixelColor>>;
 	static var dummy_texture:Bitmap;
-	static var pal_datasource:ArrayDataSource<Label>;
+	static var pal_datasource:ArrayDataSource<String>;
 	static var main_palette:WorkBitmap;
 	
 	var loaded_bitmap:Bitmap;
@@ -240,12 +240,10 @@ class Main extends Sprite
 			Main.pal[p_id] = new WorkBitmap(p_bitmap, 16, 16);
 			
 			//create label for dropdown
-			var pal_label:Label = new Label();
 			var l_text = StringTools.replace(a, ".png", "");
 			l_text = StringTools.replace(l_text, ".jpg", "");
 			l_text = StringTools.replace(l_text, "_", " ");
-			pal_label.text = l_text;
-			pal_datasource.add(pal_label);
+			pal_datasource.add(l_text);
 			
 			++p_id;
 		}
@@ -270,12 +268,8 @@ class Main extends Sprite
 		main_palette = pal[0];
 		
 		random_index = pal_datasource.size;
-		var random:Label = new Label();
-		random.text = "Random 16 x 16";
-		pal_datasource.add(random);
+		pal_datasource.add("Random 16 x 16");
 		monofade_index = pal_datasource.size;
-		var mono:Label = new Label();
-		mono.text = "Mono-fade";
-		pal_datasource.add(mono);
+		pal_datasource.add("Mono-fade");
 	}
 }
