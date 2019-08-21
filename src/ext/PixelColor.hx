@@ -1,4 +1,4 @@
-package;
+package ext;
 
 /**
  * ...
@@ -6,8 +6,8 @@ package;
  */
 class PixelColor 
 {
-	//these two variables are to never be touched. They store the original color value so adjustments can be retained.
-	public var argb(default, null):Int;
+	public var argb(get, null):Int;
+	public var rgb(get, null):Int;
 	
 	//Work values
 	var _a:Int;
@@ -15,10 +15,18 @@ class PixelColor
 	var _g:Int;
 	var _b:Int;
 	
+	public var x:Int;
+	public var y:Int;
+	
 	public var alpha(get, set):Int;
 	public var red(get, set):Int;
 	public var green(get, set):Int;
 	public var blue(get, set):Int;
+	public var hue(get, null):Int;
+	//public var saturation(get, null):Int;
+	//public var luminance(get, null):Int;
+	public var max(get, null):Float;
+	public var min(get, null):Float;
 	
 	public var originalAlpha(get, never):Int;
 	public var originalRed(get, never):Int;
@@ -31,9 +39,12 @@ class PixelColor
 	public var greenMultiplier:Float = 1;
 	public var blueMultiplier:Float = 1;
 	
-	public function new(_argb:Int) 
+	public function new(_argb:Int, _x:Int, _y:Int) 
 	{
 		argb = _argb;
+		
+		x = _x;
+		y = _y;
 		
 		_a = (_argb >> 24) & 0xFF;
 		_r = (_argb >> 16) & 0xFF;
@@ -54,6 +65,9 @@ class PixelColor
 		green = c - green;
 		blue = c - blue;
 	}
+	public function invertSaturation() {
+		
+	}
 	public function invertLuminance() {
 		
 	}
@@ -61,10 +75,10 @@ class PixelColor
 		alpha = 255 - alpha;
 	}
 
-	public function getColorARGB():Int {
+	public function get_argb():Int {
 		return alpha << 24 | red << 16 | green << 8 | blue;
 	}
-	public function getColorRGB():Int {
+	public function get_rgb():Int {
 		return red << 16 | green << 8 | blue;
 	}
 	
@@ -105,7 +119,34 @@ class PixelColor
 		value *= saturationMultiplier;
 		return Std.int(Math.min(value, 255)) & 0xFF;
 	}
-	
+	function get_max():Float {
+		return Math.max(Math.max(red / 255, green / 255), blue / 255);
+	}
+	function get_min():Float {
+		return Math.min(Math.min(red / 255, green / 255), blue / 255);
+	}
+	function get_hue():Int {
+		var delta:Float = max - min;
+		var hue:Float = 0;
+		var r:Float = red / 255;
+		var g:Float = green / 255;
+		var b:Float = blue / 255;
+		if (delta == 0) hue = 0;
+		else {
+			switch (max) {
+				case r:
+					hue = (((g - b) / 6) / delta);
+				case g:
+					hue = ((1 / 3) + ((b - r) / 6) / delta);
+				case b:
+					hue = ((2 / 3) + ((r - g) / 6) / delta);
+			}
+		}
+		if (hue < 0) hue += 1;
+		if (hue > 1) hue -= 1;
+		hue *= 360;
+		return Std.int(hue);
+	}
 	function set_alpha(_v:Int):Int {
 		return _a = _v;
 	}

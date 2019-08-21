@@ -16,13 +16,13 @@
 	<!-- classpath, haxe libs -->
 	<source path="src" />
 	<haxelib name="openfl" />
+	<haxelib name="haxeui-core" />
+	<haxelib name="haxeui-openfl" />
 	
 	<!-- assets -->
-	<icon path="assets/openfl.svg" />
+	<icon path="assets/icon.png" />
 	<assets path="assets/img" rename="img" />
 	<assets path="assets/embed" rename="embed" embed="true" />
-	<assets path="assets/fonts" rename="fonts"/>
-	<library path="assets/flash/assets.swf" id="assets" />
 	
 	<!-- optimize output
 	<haxeflag name="-dce full" /> -->
