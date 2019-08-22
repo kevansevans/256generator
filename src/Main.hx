@@ -1,9 +1,12 @@
 package;
 
+import openfl.geom.Rectangle;
+import openfl.utils.ByteArray;
 import sys.FileSystem;
 import sys.io.File;
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
+import openfl.display.PNGEncoderOptions;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.KeyboardEvent;
@@ -198,9 +201,9 @@ class Main extends Sprite
 		var save:Button = new Button();
 		var quit:Button = new Button();
 		pal_monoedit.addComponent(optionbox);
-		save.text = "Save palette";
+		save.text = "Save and Add palette";
 		quit.text = "Close";
-		//optionbox.addComponent(save);
+		optionbox.addComponent(save);
 		optionbox.addComponent(quit);
 		
 		color_a.onChange = color_b.onChange = function(e:UIEvent) {
@@ -210,6 +213,15 @@ class Main extends Sprite
 			createMonofadePal(cola, colb);
 			mono_a = cola;
 			mono_b = colb;
+		}
+		
+		save.onClick = function(e:UIEvent) {
+			var fout = File.write("img/" + StringTools.hex(Std.parseInt("0x" + color_a.text), 6) + " to " + StringTools.hex(Std.parseInt("0x" + color_b.text), 6) + ".png");
+			var iout:ByteArray = main_palette.source.bitmapData.encode(new Rectangle(0, 0, 16, 16), new PNGEncoderOptions());
+			fout.writeBytes(iout, 0, iout.length);
+			fout.close();
+			getPalAndColorLists();
+			pal_dropdown.dataSource = pal_datasource;
 		}
 		
 		quit.onClick = function(e:UIEvent) {
