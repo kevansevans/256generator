@@ -67,17 +67,19 @@ class Main extends Sprite
 	static var dummy_texture:Bitmap;
 	static var pal_datasource:ArrayDataSource<String>;
 	static var main_palette:WorkBitmap;
-	
-	var loaded_bitmap:Bitmap;
-	var loaded_hex:Array<Array<PixelColor>>;
-	var work_bitmapdata:BitmapData;
-	var display_bitmap:Bitmap;
-	
-	var current_palette:Int = 0;
-	var hue_negative:Bool = false;
-	
 	static var random_index:Int = -1;
 	static var monofade_index:Int = -1;
+	
+	var overlay_bitmap:WorkBitmap;
+	var underlay_bitmap:WorkBitmap;
+	var display_bitmap:WorkBitmap;
+	
+	var hue_negative:Bool = false;
+	var alpha_knockout_min:Int = 0;
+	var alpha_knockout_max:Int = 255;
+	
+	var underlay_update:Bool = false;
+	var overlay_update:Bool = false;
 	
 	public function new() 
 	{
@@ -86,12 +88,21 @@ class Main extends Sprite
 		//Backend Initialize
 		getPalAndColorLists(); //get palettes and index their colors
 		
+		var rng_date = Std.int(Date.now().getTime());
+		overlay_bitmap = new WorkBitmap(Assets.getBitmapData("embed/texture.png"));
+		underlay_bitmap = new WorkBitmap(new BitmapData(overlay_bitmap.bitmapData.width, overlay_bitmap.bitmapData.height, true, 0xFF000000));
+		display_bitmap = new WorkBitmap(new BitmapData(overlay_bitmap.bitmapData.width, overlay_bitmap.bitmapData.height, true, 0));
+		
 		//Frontend Initialize
 		init_ui();
 		init_events();
 		
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e:KeyboardEvent) {
-			if (e.keyCode == Keyboard.SPACE) update_workBitmap();
+			//if (e.keyCode == Keyboard.SPACE) update_workBitmap();
+		});
+		
+		stage.addEventListener(Event.ENTER_FRAME, function(e:Event) {
+			cycle_colors();
 		});
 	}
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,17 +124,19 @@ class Main extends Sprite
 		overlay_tab();
 		export_tab();
 		
-		bitmap_display();
+		workbench_ui();
 		
 		resize_ui();
 	}
-	
 	var box_palprop:HBox;
 	var box_palview:Box;
+	var box_alphaview:VBox;
 	var pal_dropdown:DropDown;
 	var pal_contextbutton:Button;
 	var pal_savemono:Button;
 	var pal_monoedit:MessageBox;
+	var pal_alphako_min:HorizontalSlider;
+	var pal_alphako_max:HorizontalSlider;
 	var mono_a:Int = 0xFFFFFF;
 	var mono_b:Int = 0;
 	function palette_tab() {
@@ -144,6 +157,8 @@ class Main extends Sprite
 		pal_dropdown.width = 150;
 		pal_dropdown.dropdownHeight = 200;
 		pal_dropdown.onChange = function(e:UIEvent) {
+			underlay_update = true;
+			if (contains(pal_monoedit)) removeChild(pal_monoedit);
 			if (pal_dropdown.selectedIndex == random_index) {
 				createRandomPal();
 				pal_contextbutton.visible = true;
@@ -178,6 +193,41 @@ class Main extends Sprite
 		
 		box_palview.addChild(main_palette);
 		main_palette.width = main_palette.height = 275;
+		
+		box_alphaview = new VBox();
+		palette_box.addComponent(box_alphaview);
+		
+		var min_label:Label = new Label();
+		box_alphaview.addComponent(min_label);
+		min_label.text = "Alpha knockout minimum: None";
+		
+		pal_alphako_min = new HorizontalSlider();
+		pal_alphako_min.min = -1;
+		pal_alphako_min.max = 256;
+		pal_alphako_min.value = -1;
+		pal_alphako_min.width = 255;
+		box_alphaview.addComponent(pal_alphako_min);
+		pal_alphako_min.onChange = function(e:UIEvent) {
+			underlay_update = true;
+			alpha_knockout_min = Std.int(pal_alphako_min.value);
+			min_label.text = "Alpha knockout minimum: " + (pal_alphako_min.value == -1 ? "None" : "" + Std.int(pal_alphako_min.value));
+		}
+		
+		var max_label:Label = new Label();
+		box_alphaview.addComponent(max_label);
+		max_label.text = "Alpha knockout maximum: None";
+		
+		pal_alphako_max = new HorizontalSlider();
+		pal_alphako_max.min = 0;
+		pal_alphako_max.max = 256;
+		pal_alphako_max.value = 256;
+		pal_alphako_max.width = 255;
+		box_alphaview.addComponent(pal_alphako_max);
+		pal_alphako_max.onChange = function(e:UIEvent) {
+			underlay_update = true;
+			alpha_knockout_max = Std.int(pal_alphako_max.value);
+			max_label.text = "Alpha knockout maximum: " + (pal_alphako_max.value == 256 ? "None" : "" + Std.int(pal_alphako_max.value));
+		}
 	}
 	function popup_monofade() {
 		pal_monoedit = new MessageBox();
@@ -201,7 +251,7 @@ class Main extends Sprite
 		var save:Button = new Button();
 		var quit:Button = new Button();
 		pal_monoedit.addComponent(optionbox);
-		save.text = "Save and Add palette";
+		save.text = "Save palette to disk";
 		quit.text = "Close";
 		optionbox.addComponent(save);
 		optionbox.addComponent(quit);
@@ -213,6 +263,7 @@ class Main extends Sprite
 			createMonofadePal(cola, colb);
 			mono_a = cola;
 			mono_b = colb;
+			underlay_update = true;
 		}
 		
 		save.onClick = function(e:UIEvent) {
@@ -267,10 +318,61 @@ class Main extends Sprite
 	}
 	
 	var workbench:Sprite;
-	
-	function bitmap_display() 
+	function workbench_ui() 
 	{
+		workbench = new Sprite();
+		addChild(workbench);
 		
+		addChild(display_bitmap);
+	}
+	
+	var buffer:Int = 0;
+	var pal_posx:Int = 0;
+	var pal_posy:Int = 0;
+	function cycle_colors()
+	{
+		++buffer;
+		if (buffer >= 10) {
+			buffer = 0;
+			var color = main_palette.bitmapData.getPixel32(pal_posx, pal_posy);
+			for (a in underlay_bitmap.hex) {
+				a.alpha = a.originalAlpha;
+				a.red = (color >> 16) & 0xFF;
+				a.green = (color >> 8) & 0xFF;
+				a.blue = color & 0xFF;
+			}
+			++pal_posx;
+			if (pal_posx >= 16) {
+				pal_posx = 0;
+				pal_posy += 1;
+				if (pal_posy >= 16) pal_posy = 0;
+			}
+			underlay_update = true;
+		}
+		update_display();
+	}
+	
+	function update_display() 
+	{
+		display_bitmap.clear();
+		
+		if (underlay_update) {
+			for (a in underlay_bitmap.hex) {
+				var place:String = "x" + a.x + "y" + a.y;
+				if (overlay_bitmap.hex[place].originalAlpha >= alpha_knockout_max || overlay_bitmap.hex[place].originalAlpha <= alpha_knockout_min) a.alpha = 0;
+				else a.alpha = 0xFF;
+			}
+			underlay_bitmap.update();
+			underlay_update = false;
+		}
+		
+		if (overlay_update) {
+			
+			overlay_update = false;
+		}
+		
+		display_bitmap.bitmapData.draw(underlay_bitmap.bitmapData);
+		display_bitmap.bitmapData.draw(overlay_bitmap.bitmapData);
 	}
 	function init_events() 
 	{
@@ -294,15 +396,27 @@ class Main extends Sprite
 		export_box.height = main_tab.height - 40;
 		
 		main_palette.width = main_palette.height = 275;
+		
+		workbench.x = 320;
+		workbench.y = 40;
+		workbench.graphics.clear();
+		workbench.graphics.lineStyle(2, 0);
+		workbench.graphics.beginBitmapFill(Assets.getBitmapData("embed/bg_fill.png"));
+		workbench.graphics.moveTo(0, 0);
+		workbench.graphics.lineTo(Lib.current.stage.stageWidth - 330, 0);
+		workbench.graphics.lineTo(Lib.current.stage.stageWidth - 330, Lib.current.stage.stageHeight - 50);
+		workbench.graphics.lineTo(0, Lib.current.stage.stageHeight - 50);
+		workbench.graphics.lineTo(0, 0);
+		
+		display_bitmap.scaleX = display_bitmap.scaleY = 5;
+		display_bitmap.x = (workbench.x + workbench.width / 2) - (display_bitmap.width / 2);
+		display_bitmap.y = (workbench.y + workbench.height / 2) - (display_bitmap.height / 2);
 	}
 	inline public function update_mainPalette(_pal:Int = 0) {
 		box_palview.removeChild(main_palette);
 		if (!hue_negative) main_palette = pal[_pal];
 		else if (hue_negative) main_palette = pal_neg[_pal];
 		box_palview.addChild(main_palette);
-	}
-	function update_workBitmap() {
-		
 	}
 	function random_palette():BitmapData {
 		var r_palette:BitmapData = new BitmapData(16, 16, false, 0);
@@ -358,10 +472,12 @@ class Main extends Sprite
 			var t_bitmap = new Bitmap(BitmapData.fromBytes(File.getBytes("img/" + a)));
 			
 			//resize to 16 x 16
-			var p_bitmap = new BitmapData(16, 16, false, 0xFFFFFFFF);
+			var p_bitmap = new BitmapData(16, 16, true, 0xFFFFFFFF);
 			p_bitmap.draw(t_bitmap);
 			
 			Main.pal[p_id] = new WorkBitmap(p_bitmap, 16, 16);
+			
+			for (b in Main.pal[p_id].hex) b.alpha = 0xFF;
 			
 			//create label for dropdown
 			var l_text = StringTools.replace(a, ".png", "");
@@ -384,8 +500,8 @@ class Main extends Sprite
 			Main.pal_neg[p_id] = new WorkBitmap(p_bitmap, 16, 16);
 			for (b in Main.pal_neg[p_id].hex) {
 				b.invertHue();
+				b.alpha = 0xFF;
 			}
-			Main.pal_neg[p_id].retroApply();
 			
 			++p_id;
 		}
