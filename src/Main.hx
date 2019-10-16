@@ -1,5 +1,8 @@
 package;
 
+import haxe.display.Display.PositionParams;
+import haxe.ui.components.Stepper;
+import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.utils.ByteArray;
 import sys.FileSystem;
@@ -69,10 +72,12 @@ class Main extends Sprite
 	static var main_palette:WorkBitmap;
 	static var random_index:Int = -1;
 	static var monofade_index:Int = -1;
+	static var swatcheToggle:Map<String, Bool>;
 	
 	var overlay_bitmap:WorkBitmap;
 	var underlay_bitmap:WorkBitmap;
 	var display_bitmap:WorkBitmap;
+	var display_scale:Float = 5;
 	
 	var hue_negative:Bool = false;
 	var alpha_knockout_min:Int = 0;
@@ -80,6 +85,9 @@ class Main extends Sprite
 	
 	var underlay_update:Bool = false;
 	var overlay_update:Bool = false;
+	
+	var origin:Point = new Point();
+	var display_center:Point = new Point();
 	
 	public function new() 
 	{
@@ -89,7 +97,7 @@ class Main extends Sprite
 		getPalAndColorLists(); //get palettes and index their colors
 		
 		var rng_date = Std.int(Date.now().getTime());
-		overlay_bitmap = new WorkBitmap(Assets.getBitmapData("embed/texture.png"));
+		overlay_bitmap = new WorkBitmap(Assets.getBitmapData("embed/shirt.png"));
 		underlay_bitmap = new WorkBitmap(new BitmapData(overlay_bitmap.bitmapData.width, overlay_bitmap.bitmapData.height, true, 0xFF000000));
 		display_bitmap = new WorkBitmap(new BitmapData(overlay_bitmap.bitmapData.width, overlay_bitmap.bitmapData.height, true, 0));
 		
@@ -112,6 +120,7 @@ class Main extends Sprite
 	var palette_box:ScrollView;
 	var overlay_box:ScrollView;
 	var export_box:ScrollView;
+	var bitmap_scale:HorizontalSlider;
 	function init_ui() {
 		Toolkit.init();
 		
@@ -127,21 +136,44 @@ class Main extends Sprite
 		workbench_ui();
 		
 		resize_ui();
+		
+		update_origin(new Point(0, 0));
+		
+		bitmap_scale = new HorizontalSlider();
+		addChild(bitmap_scale);
+		bitmap_scale.x = workbench.x;
+		bitmap_scale.y = workbench.y - 25;
+		bitmap_scale.width = 300;
+		bitmap_scale.min = 0.25;
+		bitmap_scale.max = 15;
+		bitmap_scale.value = 5;
+		bitmap_scale.onChange = function(e:UIEvent) {
+			display_scale = bitmap_scale.value;
+			
+			update_display_size();
+			update_origin(origin);
+		}
 	}
 	var box_palprop:HBox;
 	var box_palview:Box;
-	var box_alphaview:VBox;
+	var box_alphaview_min:HBox;
+	var box_alphaview_max:HBox;
 	var pal_dropdown:DropDown;
 	var pal_contextbutton:Button;
+	var pal_swatchSelectButton:Button;
 	var pal_savemono:Button;
-	var pal_monoedit:MessageBox;
-	var pal_alphako_min:HorizontalSlider;
-	var pal_alphako_max:HorizontalSlider;
+	var pal_monoedit:VBox;
+	var pal_alphamin_step:Stepper;
+	var pal_alphamin_field:TextField;
+	var pal_alphamax_step:Stepper;
+	var pal_alphamax_field:TextField;
 	var mono_a:Int = 0xFFFFFF;
 	var mono_b:Int = 0;
+	var drawoverSwatches:Sprite = new Sprite();
+	var range_box:Box;
 	function palette_tab() {
 		palette_box = new ScrollView();
-		palette_box.text = "Palette";
+		palette_box.text = "Under Color";
 		main_tab.addComponent(palette_box);
 		
 		box_palprop = new HBox();
@@ -173,6 +205,7 @@ class Main extends Sprite
 				pal_contextbutton.text = "Edit";
 				pal_contextbutton.onClick = function(e:UIEvent) {
 					popup_monofade();
+					pal_contextbutton.disabled = true;
 				};
 			} else {
 				update_mainPalette(pal_dropdown.selectedIndex);
@@ -194,51 +227,125 @@ class Main extends Sprite
 		box_palview.addChild(main_palette);
 		main_palette.width = main_palette.height = 275;
 		
-		box_alphaview = new VBox();
-		palette_box.addComponent(box_alphaview);
+		var alphaknockout_label:Label = new Label();
+		palette_box.addComponent(alphaknockout_label);
+		alphaknockout_label.text = "Alpha knockout";
 		
-		var min_label:Label = new Label();
-		box_alphaview.addComponent(min_label);
-		min_label.text = "Alpha knockout minimum: None";
+		box_alphaview_min = new HBox();
+		palette_box.addComponent(box_alphaview_min);
 		
-		pal_alphako_min = new HorizontalSlider();
-		pal_alphako_min.min = -1;
-		pal_alphako_min.max = 256;
-		pal_alphako_min.value = -1;
-		pal_alphako_min.width = 255;
-		box_alphaview.addComponent(pal_alphako_min);
-		pal_alphako_min.onChange = function(e:UIEvent) {
-			underlay_update = true;
-			alpha_knockout_min = Std.int(pal_alphako_min.value);
-			min_label.text = "Alpha knockout minimum: " + (pal_alphako_min.value == -1 ? "None" : "" + Std.int(pal_alphako_min.value));
+		pal_alphamin_field = new TextField();
+		box_alphaview_min.addComponent(pal_alphamin_field);
+		pal_alphamin_field.width = 100;
+		pal_alphamin_field.text = "Off";
+		pal_alphamin_field.onChange = function(e:UIEvent) {
+			
+			var value:Null<Int> = Std.parseInt(pal_alphamin_field.value);
+			
+			if (value != null) {
+				alpha_knockout_min = value;
+				pal_alphamin_step.value = value;
+			} else {
+				if (pal_alphamin_field.value.toUpperCase() == "OFF") alpha_knockout_min = -1;
+				if (pal_alphamin_field.value.toUpperCase() == "FULL") alpha_knockout_min = 256;
+			}
 		}
 		
-		var max_label:Label = new Label();
-		box_alphaview.addComponent(max_label);
-		max_label.text = "Alpha knockout maximum: None";
-		
-		pal_alphako_max = new HorizontalSlider();
-		pal_alphako_max.min = 0;
-		pal_alphako_max.max = 256;
-		pal_alphako_max.value = 256;
-		pal_alphako_max.width = 255;
-		box_alphaview.addComponent(pal_alphako_max);
-		pal_alphako_max.onChange = function(e:UIEvent) {
-			underlay_update = true;
-			alpha_knockout_max = Std.int(pal_alphako_max.value);
-			max_label.text = "Alpha knockout maximum: " + (pal_alphako_max.value == 256 ? "None" : "" + Std.int(pal_alphako_max.value));
+		pal_alphamin_step = new Stepper();
+		box_alphaview_min.addComponent(pal_alphamin_step);
+		pal_alphamin_step.value = -1;
+		pal_alphamin_step.max = 256;
+		pal_alphamin_step.min = -1;
+		pal_alphamin_step.onChange = function(e:UIEvent) {
+			
+			switch (pal_alphamin_step.value) {
+				case -1 :
+					pal_alphamin_field.text = "-1 Off";
+					alpha_knockout_min = -1;
+				case 256 :
+					pal_alphamin_field.text = "256 Full";
+					alpha_knockout_min = 256;
+				default :
+					pal_alphamin_field.text = pal_alphamin_step.value;
+					alpha_knockout_min = pal_alphamin_step.value;
+			}
+			
+			update_display();
 		}
+		
+		var alphamin_label:Label = new Label();
+		box_alphaview_min.addComponent(alphamin_label);
+		alphamin_label.text = "Minimum alpha";
+		
+		box_alphaview_max = new HBox();
+		palette_box.addComponent(box_alphaview_max);
+		
+		pal_alphamax_field = new TextField();
+		box_alphaview_max.addComponent(pal_alphamax_field);
+		pal_alphamax_field.width = 100;
+		pal_alphamax_field.text = "Off";
+		pal_alphamax_field.onChange = function(e:UIEvent) {
+			
+			var value:Null<Int> = Std.parseInt(pal_alphamax_field.value);
+			
+			if (value != null) {
+				alpha_knockout_max = value;
+				pal_alphamax_step.value = value;
+			} else {
+				if (pal_alphamax_field.value.toUpperCase() == "FULL") alpha_knockout_max = -1;
+				if (pal_alphamax_field.value.toUpperCase() == "OFF") alpha_knockout_max = 256;
+			}
+		}
+		
+		pal_alphamax_step = new Stepper();
+		box_alphaview_max.addComponent(pal_alphamax_step);
+		pal_alphamax_step.value = 256;
+		pal_alphamax_step.max = 256;
+		pal_alphamax_step.min = -1;
+		pal_alphamax_step.onChange = function(e:UIEvent) {
+			
+			switch (pal_alphamax_step.value) {
+				case -1 :
+					pal_alphamax_field.text = "-1 Full";
+					alpha_knockout_max = -1;
+				case 256 :
+					pal_alphamax_field.text = "256 Off";
+					alpha_knockout_max = 256;
+				default :
+					pal_alphamax_field.text = pal_alphamax_step.value;
+					alpha_knockout_max = pal_alphamax_step.value;
+			}
+			
+			update_display();
+		}
+		
+		var alphamax_label:Label = new Label();
+		box_alphaview_max.addComponent(alphamax_label);
+		alphamax_label.text = "Maximum alpha";
+	}
+	
+	function make_range() 
+	{
+		range_box = new Box();
+		
+		range_box.x = main_tab.x + main_tab.width + 5;
+		range_box.y = 5;
+		range_box.width = 200;
+		range_box.height = 200;
+		range_box.backgroundColor = 0xCCCCCC;
 	}
 	function popup_monofade() {
-		pal_monoedit = new MessageBox();
-		pal_monoedit.title = "Please input two RGB hex colors:";
-		pal_monoedit.height = 160;
-		pal_monoedit.closable = false;
-		pal_monoedit.x = 320;
-		pal_monoedit.y = 10;
+		pal_monoedit = new VBox();
+		pal_monoedit.backgroundColor = 0xEEEEEE;
+		pal_monoedit.x = workbench.x + 5;
+		pal_monoedit.y = workbench.y + 5;
+		pal_monoedit.width = 200;
+		pal_monoedit.height = 100;
 		addChild(pal_monoedit);
 		
 		var colorbox:VBox = new VBox();
+		colorbox.x = 5;
+		colorbox.y = 5;
 		var color_a:TextField = new TextField();
 		var color_b:TextField = new TextField();
 		pal_monoedit.addComponent(colorbox);
@@ -277,6 +384,7 @@ class Main extends Sprite
 		
 		quit.onClick = function(e:UIEvent) {
 			removeChild(pal_monoedit);
+			pal_contextbutton.disabled = false;
 		}
 	}
 	function createMonofadePal(_colA:Int = 0xFFFFFF, _colB:Int = 0) 
@@ -318,12 +426,58 @@ class Main extends Sprite
 	}
 	
 	var workbench:Sprite;
+	var workbench_mask:Sprite;
+	var workbench_origin:Sprite;
 	function workbench_ui() 
 	{
 		workbench = new Sprite();
 		addChild(workbench);
 		
 		addChild(display_bitmap);
+		
+		workbench_mask = new Sprite();
+		addChild(workbench_mask);
+		workbench_mask.mouseEnabled = false;
+		
+		display_bitmap.mask = workbench_mask;
+		
+		workbench_origin = new Sprite();
+		
+		workbench_origin.mask = workbench_mask;
+		
+		addChild(workbench_origin);
+		
+		workbench_origin.x = workbench_mask.x = workbench.x;
+		workbench_origin.y = workbench_mask.y = workbench.y;
+		
+		workbench.doubleClickEnabled = true;
+		workbench.addEventListener(MouseEvent.DOUBLE_CLICK, function(e:MouseEvent) {
+			
+			origin = workbench_origin.globalToLocal(new Point(stage.mouseX, stage.mouseY));
+		
+			origin.x = Math.round(origin.x);
+			origin.y = Math.round(origin.y);
+			
+			update_origin(origin);
+		});
+	}
+	function update_origin(_locale:Point) 
+	{
+		var origin_cross_size:Float = 50 * (1 / display_bitmap.scaleX);
+		
+		workbench_origin.x = display_bitmap.x;
+		workbench_origin.y = display_bitmap.y;
+		workbench_origin.scaleX = display_bitmap.scaleX;
+		workbench_origin.scaleY = display_bitmap.scaleY;
+		
+		workbench_origin.graphics.clear();
+		workbench_origin.graphics.lineStyle(1 * (1 / display_bitmap.scaleX), 0xFF00FF);
+		
+		workbench_origin.graphics.moveTo(_locale.x - origin_cross_size, _locale.y);
+		workbench_origin.graphics.lineTo(_locale.x + origin_cross_size, _locale.y);
+		
+		workbench_origin.graphics.moveTo(_locale.x, _locale.y - origin_cross_size);
+		workbench_origin.graphics.lineTo(_locale.x, _locale.y + origin_cross_size);
 	}
 	
 	var buffer:Int = 0;
@@ -397,8 +551,8 @@ class Main extends Sprite
 		
 		main_palette.width = main_palette.height = 275;
 		
-		workbench.x = 320;
-		workbench.y = 40;
+		workbench.x = main_tab.x + main_tab.width + 10;
+		workbench.y = main_tab.y + 25;
 		workbench.graphics.clear();
 		workbench.graphics.lineStyle(2, 0);
 		workbench.graphics.beginBitmapFill(Assets.getBitmapData("embed/bg_fill.png"));
@@ -408,7 +562,25 @@ class Main extends Sprite
 		workbench.graphics.lineTo(0, Lib.current.stage.stageHeight - 50);
 		workbench.graphics.lineTo(0, 0);
 		
-		display_bitmap.scaleX = display_bitmap.scaleY = 5;
+		workbench_mask.x = main_tab.x + main_tab.width + 10;
+		workbench_mask.y = main_tab.y + 25;
+		workbench_mask.graphics.clear();
+		workbench_mask.graphics.lineStyle(2, 0);
+		workbench_mask.graphics.beginBitmapFill(new BitmapData(16, 16, false, 0));
+		workbench_mask.graphics.moveTo(0, 0);
+		workbench_mask.graphics.lineTo(Lib.current.stage.stageWidth - 330, 0);
+		workbench_mask.graphics.lineTo(Lib.current.stage.stageWidth - 330, Lib.current.stage.stageHeight - 50);
+		workbench_mask.graphics.lineTo(0, Lib.current.stage.stageHeight - 50);
+		workbench_mask.graphics.lineTo(0, 0);
+		
+		update_display_size();
+		
+		update_origin(origin);
+	}
+	
+	function update_display_size() 
+	{
+		display_bitmap.scaleX = display_bitmap.scaleY = display_scale;
 		display_bitmap.x = (workbench.x + workbench.width / 2) - (display_bitmap.width / 2);
 		display_bitmap.y = (workbench.y + workbench.height / 2) - (display_bitmap.height / 2);
 	}
