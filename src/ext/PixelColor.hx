@@ -10,10 +10,14 @@ class PixelColor
 	public var rgb(get, null):Int;
 	
 	//Work values
-	var _a:Int;
-	var _r:Int;
-	var _g:Int;
-	var _b:Int;
+	var _a:Int; //Alpha
+	var _r:Int; //Red
+	var _g:Int; //Green
+	var _b:Int;	//Blue
+	
+	var _h:Float; //Hue
+	var _s:Float; //Saturation
+	var _l:Float; //Luminance
 	
 	public var x:Int;
 	public var y:Int;
@@ -22,9 +26,11 @@ class PixelColor
 	public var red(get, set):Int;
 	public var green(get, set):Int;
 	public var blue(get, set):Int;
-	public var hue(get, null):Int;
-	//public var saturation(get, null):Int;
-	//public var luminance(get, null):Int;
+	
+	public var hue(get, set):Float;
+	public var saturation(get, set):Float;
+	public var luminance(get, set):Float;
+	
 	public var max(get, null):Float;
 	public var min(get, null):Float;
 	
@@ -50,6 +56,29 @@ class PixelColor
 		_r = (_argb >> 16) & 0xFF;
 		_g = (_argb >> 8) & 0xFF;
 		_b = _argb & 0xFF;
+		
+		var add = max + min;
+		var sub = max - min;
+		
+		if (max == min) {
+			_h = 0;
+		} else if (max == _r / 255) {
+			_h = (60 * ((_g / 255) - (_b / 255)) / sub + 360) % 360;
+		} else if (max == _g / 255) {
+			_h = 60 * ((_b / 255) - (_r / 255)) / sub + 120;
+		} else if (max == _b / 255) {
+			_h = 60 * ((_r / 255) - (_g / 255)) / sub + 240;
+		}
+		
+		_l = add / 2;
+		
+		if (max == min) {
+			_s = 0;
+		} else if (_l <= 0.5) {
+			_s = sub / add;
+		} else {
+			_s = sub / (2 - add);
+		}
 	}
 	
 	public function reset() {
@@ -119,34 +148,27 @@ class PixelColor
 		value *= saturationMultiplier;
 		return Std.int(Math.min(value, 255)) & 0xFF;
 	}
+	
+	function get_hue():Float 
+	{
+		return _h;
+	}
+	function get_saturation():Float 
+	{
+		return _s;
+	}
+	function get_luminance():Float 
+	{
+		return _l;
+	}
+	
 	function get_max():Float {
 		return Math.max(Math.max(red / 255, green / 255), blue / 255);
 	}
 	function get_min():Float {
 		return Math.min(Math.min(red / 255, green / 255), blue / 255);
 	}
-	function get_hue():Int {
-		var delta:Float = max - min;
-		var hue:Float = 0;
-		var r:Float = red / 255;
-		var g:Float = green / 255;
-		var b:Float = blue / 255;
-		if (delta == 0) hue = 0;
-		else {
-			switch (max) {
-				case r:
-					hue = (((g - b) / 6) / delta);
-				case g:
-					hue = ((1 / 3) + ((b - r) / 6) / delta);
-				case b:
-					hue = ((2 / 3) + ((r - g) / 6) / delta);
-			}
-		}
-		if (hue < 0) hue += 1;
-		if (hue > 1) hue -= 1;
-		hue *= 360;
-		return Std.int(hue);
-	}
+	
 	function set_alpha(_v:Int):Int {
 		return _a = _v;
 	}
@@ -158,5 +180,19 @@ class PixelColor
 	}
 	function set_blue(_v:Int):Int {
 		return _b = _v;
+	}
+	
+	function set_hue(_v:Float):Float 
+	{
+		var _hue = Math.round(_v);
+		return _h = _hue;
+	}
+	function set_saturation(_v:Float):Float 
+	{
+		return _s = _v;
+	}
+	function set_luminance(_v:Float):Float 
+	{
+		return _l = _v;
 	}
 }
