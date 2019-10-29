@@ -1,12 +1,15 @@
 package;
 
+#if sys
+import sys.FileSystem;
+import sys.io.File;
+#end
+
 import haxe.display.Display.PositionParams;
 import haxe.ui.components.Stepper;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.utils.ByteArray;
-import sys.FileSystem;
-import sys.io.File;
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
 import openfl.display.PNGEncoderOptions;
