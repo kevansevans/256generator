@@ -185,14 +185,76 @@ class PixelColor
 	function set_hue(_v:Float):Float 
 	{
 		var _hue = Math.round(_v);
+		if (_hue >= 360) _hue -= 360;
+		
+		var _rgb = hsl_to_rgb(_hue, _s, _l);
+		red = (_rgb >> 16) & 0xFF;
+		green = (_rgb >> 8) & 0xFF;
+		blue = _rgb & 0xFF;
+		
 		return _h = _hue;
 	}
 	function set_saturation(_v:Float):Float 
 	{
+		var _rgb = hsl_to_rgb(_h, _v, _l);
+		
+		red = (_rgb >> 16) & 0xFF;
+		green = (_rgb >> 8) & 0xFF;
+		blue = _rgb & 0xFF;
+		
 		return _s = _v;
 	}
 	function set_luminance(_v:Float):Float 
 	{
+		var _rgb = hsl_to_rgb(_h, _s, _v);
+		
+		red = (_rgb >> 16) & 0xFF;
+		green = (_rgb >> 8) & 0xFF;
+		blue = _rgb & 0xFF;
+		
 		return _l = _v;
+	}
+	
+	function hsl_to_rgb(_hue:Float, _sat:Float, _lum:Float):Int {
+		
+		var q:Float;
+		if (_lum < 0.5) {
+			q = _lum * (1 + _sat);
+		} else {
+			q = _lum + _sat - (_lum * _sat);
+		}
+		
+		var p:Float = 2 * _lum - q;
+		
+		var hk:Float = (_hue % 360) / 360;
+		
+		var tr:Float = hk + (1 / 3);
+		var tg:Float = hk;
+		var tb:Float = hk - (1 / 3);
+		var tc:Array<Float> = [tr, tg, tb];
+		
+		for (a in 0...tc.length) {
+			var t:Float = tc[a];
+			
+			if (t < 0) t += 1;
+			if (t > 1) t -= 1;
+			
+			if (t < 1 / 6) {
+				tc[a] = p + ((q - p) * 6 * t);
+			} else if (t < 0.5) {
+				tc[a] = q;
+			} else if (t < 2 / 3) {
+				tc[a] = p + ((q - p) * 6 * (2 / 3 - t));
+			} else {
+				tc[a] = p;
+			}
+			
+			tc[a] = Math.round(tc[a] * 255) & 0xFF;
+		}
+		
+		return Std.int(tc[0]) << 16 | Std.int(tc[1]) << 8 | Std.int(tc[2]);
+	}
+	function rgb_to_hsl(_r:Int, _g:Int, _b:Int) {
+		
 	}
 }
