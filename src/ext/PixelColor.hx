@@ -39,6 +39,10 @@ class PixelColor
 	public var originalBlue(get, never):Int;
 	public var originalGreen(get, never):Int;
 	
+	public var originalHue:Int;
+	public var originalSat:Float;
+	public var originalLum:Float;
+	
 	public var alphaMultiplier:Float = 1;
 	public var saturationMultiplier:Float = 1;
 	public var redMultiplier:Float = 1;
@@ -69,8 +73,9 @@ class PixelColor
 		} else if (max == _b / 255) {
 			_h = 60 * ((_r / 255) - (_g / 255)) / sub + 240;
 		}
+		originalHue = Std.int(_h);
 		
-		_l = add / 2;
+		originalLum = _l = add / 2;
 		
 		if (max == min) {
 			_s = 0;
@@ -79,6 +84,7 @@ class PixelColor
 		} else {
 			_s = sub / (2 - add);
 		}
+		originalSat = _s;
 	}
 	
 	public function reset() {
@@ -184,7 +190,7 @@ class PixelColor
 	
 	function set_hue(_v:Float):Float 
 	{
-		var _hue = Math.round(_v);
+		var _hue = originalHue + Math.round(_v);
 		if (_hue >= 360) _hue -= 360;
 		
 		var _rgb = hsl_to_rgb(_hue, _s, _l);
@@ -196,23 +202,25 @@ class PixelColor
 	}
 	function set_saturation(_v:Float):Float 
 	{
-		var _rgb = hsl_to_rgb(_h, _v, _l);
+		var _sat = Math.min(originalSat * _v, 1); //no such thing as saturation above 100 percent
+		var _rgb = hsl_to_rgb(_h, _sat, _l);
 		
 		red = (_rgb >> 16) & 0xFF;
 		green = (_rgb >> 8) & 0xFF;
 		blue = _rgb & 0xFF;
 		
-		return _s = _v;
+		return _s = _sat;
 	}
 	function set_luminance(_v:Float):Float 
 	{
-		var _rgb = hsl_to_rgb(_h, _s, _v);
+		var _lum = Math.min(originalLum * _v, 1);
+		var _rgb = hsl_to_rgb(_h, _s, _lum);
 		
 		red = (_rgb >> 16) & 0xFF;
 		green = (_rgb >> 8) & 0xFF;
 		blue = _rgb & 0xFF;
 		
-		return _l = _v;
+		return _l = _lum;
 	}
 	
 	function hsl_to_rgb(_hue:Float, _sat:Float, _lum:Float):Int {

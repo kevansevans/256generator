@@ -6,6 +6,7 @@ import sys.io.File;
 #end
 
 import haxe.display.Display.PositionParams;
+import haxe.ui.components.Slider;
 import haxe.ui.components.Stepper;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
@@ -161,6 +162,10 @@ class Main extends Sprite
 	var box_palview:Box;
 	var box_alphaview_min:HBox;
 	var box_alphaview_max:HBox;
+	var box_HSLMain:VBox;
+	var box_hue:HBox;
+	var box_sat:HBox;
+	var box_lum:HBox;
 	var pal_dropdown:DropDown;
 	var pal_contextbutton:Button;
 	var pal_swatchSelectButton:Button;
@@ -170,6 +175,12 @@ class Main extends Sprite
 	var pal_alphamin_field:TextField;
 	var pal_alphamax_step:Stepper;
 	var pal_alphamax_field:TextField;
+	var pal_hueslider:HorizontalSlider;
+	var pal_huelabel:Label;
+	var pal_satslider:HorizontalSlider;
+	var pal_satlabel:Label;
+	var pal_lumslider:HorizontalSlider;
+	var pal_lumlabel:Label;
 	var mono_a:Int = 0xFFFFFF;
 	var mono_b:Int = 0;
 	var drawoverSwatches:Sprite = new Sprite();
@@ -325,6 +336,69 @@ class Main extends Sprite
 		var alphamax_label:Label = new Label();
 		box_alphaview_max.addComponent(alphamax_label);
 		alphamax_label.text = "Maximum alpha";
+		
+		box_HSLMain = new VBox();
+		palette_box.addComponent(box_HSLMain);
+		
+		var hsl_label:Label = new Label();
+		box_HSLMain.addComponent(hsl_label);
+		hsl_label.text = "HSL modifiers";
+		
+		box_hue = new HBox();
+		box_HSLMain.addComponent(box_hue);
+		
+		pal_hueslider = new HorizontalSlider();
+		pal_hueslider.width = 210;
+		pal_hueslider.min = 0;
+		pal_hueslider.max = 360;
+		pal_hueslider.value = 180;
+		pal_hueslider.onChange = function(e:UIEvent) {
+			main_palette.hue_modifier = pal_hueslider.value - 180;
+			if (Math.round(pal_hueslider.value) < 180) pal_huelabel.text = "Hue: " + Math.round(pal_hueslider.value - 180);
+			else if (Math.round(pal_hueslider.value) > 180) pal_huelabel.text = "Hue: +" + Math.round(pal_hueslider.value - 180);
+			else if (Math.round(pal_hueslider.value) == 180) pal_huelabel.text = "Hue: 0";
+			main_palette.update();
+		}
+		box_hue.addComponent(pal_hueslider);
+		
+		pal_huelabel = new Label();
+		box_hue.addComponent(pal_huelabel);
+		
+		box_sat = new HBox();
+		box_HSLMain.addComponent(box_sat);
+		
+		pal_satslider = new HorizontalSlider();
+		pal_satslider.width = 210;
+		pal_satslider.min = 0;
+		pal_satslider.max = 200;
+		pal_satslider.value = 100;
+		pal_satslider.onChange = function(e:UIEvent) {
+			pal_satlabel.text = "Sat: " + Std.int(pal_satslider.value - 100);
+			main_palette.sat_modifier = pal_satslider.value / 100;
+			main_palette.update();
+		}
+		box_sat.addComponent(pal_satslider);
+		
+		pal_satlabel = new Label();
+		box_sat.addComponent(pal_satlabel);
+		
+		box_lum = new HBox();
+		box_HSLMain.addComponent(box_lum);
+		
+		pal_lumslider = new HorizontalSlider();
+		pal_lumslider.width = 210;
+		pal_lumslider.min = 0;
+		pal_lumslider.max = 200;
+		pal_lumslider.value = 100;
+		pal_lumslider.onChange = function(e:UIEvent) {
+			pal_lumlabel.text = "Lum: " + Std.int(pal_lumslider.value - 100);
+			main_palette.lum_modifier = pal_lumslider.value / 100;
+			main_palette.update();
+		}
+		box_lum.addComponent(pal_lumslider);
+		
+		pal_lumlabel = new Label();
+		box_lum.addComponent(pal_lumlabel);
 	}
 	
 	function make_range() 

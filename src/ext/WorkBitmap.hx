@@ -15,6 +15,10 @@ class WorkBitmap extends Bitmap
 	public var alpha_max(null, set):Int;
 	public var alpha_min(null, set):Int;
 	
+	public var hue_modifier(null, set):Float;
+	public var sat_modifier(null, set):Float;
+	public var lum_modifier(null, set):Float;
+	
 	var w_width:Int;
 	var w_height:Int;
 	public function new(_source:BitmapData, ?_width:Int, ?_height:Int) 
@@ -73,5 +77,29 @@ class WorkBitmap extends Bitmap
 	public function clear() {
 		var empty_bitmap = new BitmapData(w_width, w_height, true, 0);
 		this.bitmapData = empty_bitmap;
+	}
+	
+	function set_hue_modifier(value:Float):Float
+	{
+		for (a in hex) {
+			a.hue = value;
+		}
+		return hue_modifier = value;
+	}
+	
+	function set_sat_modifier(value:Float):Float 
+	{
+		for (a in hex) {
+			a.saturation = value;
+		}
+		return sat_modifier = value;
+	}
+	
+	function set_lum_modifier(value:Float):Float 
+	{
+		for (a in hex) {
+			a.luminance = value;
+		}
+		return lum_modifier = value;
 	}
 }
