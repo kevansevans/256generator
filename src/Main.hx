@@ -68,9 +68,7 @@ enum ExportMode {
 class Main extends Sprite 
 {
 	static var pal:Array<WorkBitmap>;
-	static var pal_neg:Array<WorkBitmap>;
 	static var hex:Array<Map<String, PixelColor>>;
-	static var hex_neg:Array<Map<String, PixelColor>>;
 	static var dummy_texture:Bitmap;
 	static var pal_datasource:ArrayDataSource<String>;
 	static var main_palette:WorkBitmap;
@@ -663,8 +661,7 @@ class Main extends Sprite
 	}
 	inline public function update_mainPalette(_pal:Int = 0) {
 		box_palview.removeChild(main_palette);
-		if (!hue_negative) main_palette = pal[_pal];
-		else if (hue_negative) main_palette = pal_neg[_pal];
+		main_palette = pal[_pal];
 		box_palview.addChild(main_palette);
 	}
 	function random_palette():BitmapData {
@@ -711,7 +708,6 @@ class Main extends Sprite
 	static function getPalAndColorLists()
 	{
 		Main.pal = new Array();
-		Main.pal_neg = new Array();
 		var pal_names = FileSystem.readDirectory("img/");
 		pal_datasource = new ArrayDataSource();
 		
@@ -733,24 +729,6 @@ class Main extends Sprite
 			l_text = StringTools.replace(l_text, ".jpg", "");
 			l_text = StringTools.replace(l_text, "_", " ");
 			pal_datasource.add(l_text);
-			
-			++p_id;
-		}
-		//Negative palettes
-		p_id = 0;
-		for (a in pal_names) {
-			//grab image
-			var t_bitmap = new Bitmap(BitmapData.fromBytes(File.getBytes("img/" + a)));
-			
-			//resize to 16 x 16
-			var p_bitmap = new BitmapData(16, 16, false, 0xFFFFFFFF);
-			p_bitmap.draw(t_bitmap);
-			
-			Main.pal_neg[p_id] = new WorkBitmap(p_bitmap, 16, 16);
-			for (b in Main.pal_neg[p_id].hex) {
-				b.invertHue();
-				b.alpha = 0xFF;
-			}
 			
 			++p_id;
 		}
