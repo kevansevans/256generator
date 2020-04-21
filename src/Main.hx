@@ -55,8 +55,6 @@ import ext.WorkBitmap;
  * @author Kevansevans
  * 
  * Thanks for checking out my program. Please check out the Readme for compiling instructions.
- * The UI is a custom made library I've been slowly working on over time to suit my personal needs. It's not recommended you fiddle with this part of the
- * source as it's not integral to the program over all. Feel free to ask for help if you need it.
  * 
  */
 enum ExportMode {
